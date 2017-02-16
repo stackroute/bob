@@ -4,6 +4,7 @@ import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import ChatHistory from './ChatHistory.jsx';
 import NewMessage from './NewMessage.jsx';
 import Chip from 'material-ui/Chip';
+import Paper from 'material-ui/Paper';
 
 let socket;
 export default class Chat extends React.Component{
@@ -139,7 +140,7 @@ export default class Chat extends React.Component{
 			}
 		return(
 			<center style={{height:"100%",width:"100%"}}>
-				<div style={{height:"100%",width:"100%",border: 'solid 1px #d9d9d9'}}>
+				<Paper style={{height:"100%",width:"100%",border: 'solid 1px #d9d9d9'}}>
 						<Grid  style={{height:'100%', width:"100%"}}>
 							<Row style={{ height:'6%',overflow:'hidden',width:"100%"}}>
 								<Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
@@ -157,7 +158,7 @@ export default class Chat extends React.Component{
 								</Col>
 							</Row>
 						</Grid>
-					</div>
+					</Paper>
 				</center>
 			);
 		}

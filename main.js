@@ -8,6 +8,7 @@ import Feedback from './components/Feedback.jsx';
 import Header from './components/Header.jsx';
 import Login from './components/Login.jsx';
 import cookie from "react-cookie";
+import LayoutComponent from './components/LayoutComponent.jsx';
 
 function checkAuth(nextState,replace){
   //console.log(cookie.load("Token"));
@@ -27,6 +28,7 @@ ReactDOM.render(
       <IndexRoute component={Login}/>
       <Route path='/project' component={ProjectDetails} onEnter={checkAuth}/>
       <Route path='/bob' component={Bob} onEnter={checkAuth}/>
+      <Route path='/notification' component={LayoutComponent} onEnter={checkAuth}/>
       <Route path='/feedback' component={Feedback}/>
     </Route>
     </Router>

@@ -8,6 +8,8 @@ import Drawer from 'material-ui/Drawer';
 import MenuItem from 'material-ui/MenuItem';
 import io from 'socket.io-client';
 import cookie from 'react-cookie';
+import Notifications from 'material-ui/svg-icons/social/notifications';
+import Chat from 'material-ui/svg-icons/communication/chat';
 export default class Header extends React.Component{
 
 	constructor(props) {
@@ -22,7 +24,11 @@ export default class Header extends React.Component{
 		var a;
 	    if(cookie.load("Token")!=undefined)
 	    {
-	    	a=<Link to={'/'}><IconButton tooltip="LogOut" tooltipPosition="bottom-left" onTouchTap={this.handleLogOut} iconStyle={{color:"white"}}><SettingsPower/></IconButton></Link>
+	    	a=<div>
+	    	  <Link to={'notification'}><IconButton tooltip="Notifications" tooltipPosition="bottom-left" iconStyle={{color:"white"}}><Notifications/></IconButton></Link>
+			<Link to={'bob'}><IconButton tooltip="Chat Screen" tooltipPosition="bottom-left" iconStyle={{color:"white"}}><Chat/></IconButton></Link>
+			<Link to={'/'}><IconButton tooltip="LogOut" tooltipPosition="bottom-left" onTouchTap={this.handleLogOut} iconStyle={{color:"white"}}><SettingsPower/></IconButton></Link>
+			</div>
 	    }
 		return(
 			<div style={{marginTop:"0px"}}>

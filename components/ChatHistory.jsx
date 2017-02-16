@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
 import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import FlatButton from 'material-ui/FlatButton';
-
+import Paper from 'material-ui/Paper';
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
@@ -71,10 +71,10 @@ export default class ChatHistory extends Component {
 });
 return (
 
-	<div style={{ height:'100%'}}>
+	<Paper style={{ height:'100%'}}>
 		{lem}
 		{messageList}
-	</div>
+	</Paper>
 			
 		);
 	}

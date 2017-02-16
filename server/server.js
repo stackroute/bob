@@ -12,10 +12,12 @@ var path = require('path');
 const bodyParser = require('body-parser');
 const ChannelInfo = require('./model/channelinfo.schema.js');
 var oauth = require("oauth").OAuth2;
-var OAuth2 = new oauth("ad2adcbfe26251810f6f", "77630257cf7be6a969458b5dc305789946f62af6", "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
+var OAuth2 = new oauth("79e13c29f758405e1a65", "8fe7717d67db2a1aaaf1301ac4cfe7544c468b52", "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
 var JWT = require('jsonwebtoken');
 var request = require('superagent-relative');
 var cookieParser = require('cookie-parser');
+var TilesRouter = require('./routes/tiles.routes.js');
+var request = require('superagent');
 var token;
 var accessToken;
 app.use(cookieParser());
@@ -43,25 +45,32 @@ app.get('/dashboard', function(req, res) {
         }
         accessToken = access_token;
         console.log("AccessToken: " + accessToken + "\n");
-        request.get("https://api.github.com/user?access_token="+accessToken).end((err, response) =>{
+        request.get("https://api.github.com/user?access_token=" + accessToken).end((err, response) => {
             var payload = response.body.login;
-             var secretkey = "ourbobapplication";
+            var secretkey = "ourbobapplication";
             token = JWT.sign(payload, secretkey);
-            res.cookie("Token",token);
-            console.log(token); 
+            res.cookie("Token", token);
+            console.log(token);
             UserInfo.find({ username: payload }).exec((err, reply) => {
-                if(reply.length===0){
-                    res.redirect("http://172.23.238.171:8000/#/project"); 
-                }
-                else{
-                    var currentChannel=reply[0].currentChannel;
-                     res.redirect("http://172.23.238.171:8000/#/bob");
+                if (reply.length === 0) {
+                    request.post('http://bob.blr.stackroute.in/user/' + payload + "/Layout")
+                        .end(function(err, res) {
+
+                            if (JSON.parse(res.text).result)
+                                console.log("new layout created in redis");
+                            else
+                                console.log("user already present in redis layout");
+                        });
+                    res.redirect("http://bob.blr.stackroute.in/#/project");
+                } else {
+                    var currentChannel = reply[0].currentChannel;
+                    res.redirect("http://bob.blr.stackroute.in/#/bob");
                 }
             })
-            
-    })  
-   
-})
+
+        })
+
+    })
 })
 
 app.get('/index.js', function(req, res) {
@@ -143,6 +152,8 @@ app.use(bodyParser.json())
 //         }
 //     });
 // });
+app.use('/', TilesRouter);
+
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {

@@ -33,7 +33,7 @@ export default class Bob extends React.Component{
         this.resetCurrentChannelUnread=this.resetCurrentChannelUnread.bind(this);
       }
        componentDidMount(){
-          var socket=io('http://172.23.238.171:8000');
+          var socket=io('http://bob.blr.stackroute.in/');
            let that=this;
               socket.on('channelList', function (list,unreadCount,lat,currentChannel) {
                 console.log(list,"List of Channels");

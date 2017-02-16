@@ -26,7 +26,16 @@ var config = {
             {
          test: /\.css$/,
            loader: 'style-loader!css-loader?modules',
-            include: /flexboxgrid/,
+           include: /flexboxgrid/,
+           exclude: /react-grid-layout|react-resizable/
+
+    },
+    {
+      test: /\.css$/,
+      loader: 'style-loader!css-loader',
+      include: /react-grid-layout|react-resizable/,
+      exclude: /flexboxgrid/,
+
     }
       ]
    }
