@@ -23,7 +23,7 @@ export default class Feedback extends Component {
 
  componentDidMount() {
 
-   this.setState({socket:io('http://172.23.238.193:8000')})
+   this.setState({socket:io('http://172.23.238.171:8000')})
 
  }
 

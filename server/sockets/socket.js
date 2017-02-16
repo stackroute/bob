@@ -1,17 +1,13 @@
 var mongoose = require('mongoose');
-
 var ChatHistorymodel = require('./../model/chathistory.schema.js');
 var db = require('./../connections/dbconnect.js'); //creating a connection to mongodb
 let client = require('./../connections/redisclient.js');
 var pushToRedis = require('./../PushToRedis');
-
 let async = require('async');
 let UserInfo = require('./../model/userinfo.schema.js');
 let LatList = require('./../model/lat.schema.js'),
     Feedback = require('./../model/feedback.schema.js');
-userinfo = new UserInfo();
 const ChannelInfo = require('./../model/channelinfo.schema.js');
-// client = require('./../redisclient.js');
 let unreadCount = {};
 let currentChannelName = "";
 let currentUser = "";
@@ -142,8 +138,13 @@ module.exports = function(io, socket) {
         let prev = 'lat.' + currentChannelName;
         obj[prev] = new Date();
         LatList.findOneAndUpdate({ username: currentUser }, { $set: obj }, function(err, reply) {
-            console.log('lat updated ', reply);
+            console.log('lat updated ');
+
+            UserInfo.findOneAndUpdate({username:currentUser},{$set: {currentChannel:currentChannelName}},function(err,reply){
+                console.log("CurrentChannel Updated");
+          });
         });
+
         console.log('a user disconnected');
     }
 
@@ -228,24 +229,27 @@ module.exports = function(io, socket) {
         });
     }
 
-    socket.on('login', function(usrname, projectName) {
-        console.log("first line onlt", usrname,projectName);
+    socket.on('login', function(usrname) {
+        //console.log("first line onlt", usrname,projectName);
+        currentUser=usrname;
         let lat = null;
         let loginTime = new Date().getTime();
         console.log("currentTime", loginTime);
-        console.log('========', usrname, '========', projectName, '========', "Current User");
+        //currentChannel=projectName+"#general";
+        console.log('========', usrname, '========', "Current User");
         LatList.findOne({ username: usrname }, function(err, res) {
-                // console.log(res.lat, "lat defined or not");
+            console.log(res.lat,err, "lat defined or not");
                 if (res != null) {
                     lat = res.lat;
+                    //console.log(lat,"This is lat")
                 }
-            })
+           
             //search the DB for username
         UserInfo.findOne({ username: usrname }, function(err, reply) {
-            console.log("This is reply", reply);
-            console.log("This is error on fetching channels", err);
-            reply.channelList = reply.channelList.filter((item, i) => {
-                if ((item.split('#'))[0] === projectName) {
+            console.log(reply.currentChannel);
+            currentChannelName=reply.currentChannel;
+            var channelList = reply.channelList.filter((item, i) => {
+                if ((item.split('#'))[0] === reply.currentChannel.split("#")[0]) {
                     return item;
                 }
             });
@@ -269,16 +273,16 @@ module.exports = function(io, socket) {
 
                 });
             }, function(err) {
-                console.log(" hugoboss ", reply.channelList, unreadCount, lat);
-                socket.emit('channelList', reply.channelList, unreadCount, lat);
+                console.log(" hugoboss ", channelList, unreadCount, lat,currentChannelName);
+                socket.emit('channelList', channelList, unreadCount, lat,currentChannelName);
             });
 
         });
+         })
     });
 
     socket.on('currentChannel', function(currentChannel, prevChannel, userName) {
         currentChannelName = currentChannel;
-        CurrentUser: userName;
         let d = new Date();
         console.log(prevChannel, currentChannel, unreadCount);
         unreadCount[prevChannel] = 0;
@@ -295,5 +299,60 @@ module.exports = function(io, socket) {
         console.log(unreadCount);
         socket.emit("updateUnread", currentChannel, prevChannel, d);
     });
+
+    socket.on("getProjectName",function(){
+        ChannelInfo.find({},function(err,reply){
+            //console.log(reply);
+            var projectList=reply;
+            var projects=[];
+            var users=[];
+            //console.log(reply);
+            reply.map(function(item){
+                if(projects.indexOf(item.channelName.split('#')[0])==-1){
+                    projects.push(item.channelName.split('#')[0]);
+                }
+            })
+            console.log(projects,"List of Projects");
+            UserInfo.find({},function(err,reply){
+                //console.log("Users",reply);
+                reply.map(function(item){
+                    users.push(item.username);
+                })
+                socket.emit("takeProjectList",projects,users);
+            })
+            
+        })
+    })
+
+    socket.on("addNewUser",function(userName,projectName,membersList){
+        console.log(userName,projectName,membersList);
+       let pn = projectName + "#general";
+                let latob = {};
+                latob[pn] = new Date();
+                console.log(latob);
+                 let lat = new LatList({
+                        username: userName,
+                        lat: latob
+                    });
+                 lat.save(function(err,reply){
+                    console.log(err,reply,"ChannelDetailsSave details");
+                    let user = new UserInfo({
+                username: userName,
+                channelList: projectName+"#general",
+                currentChannel:projectName+"#general"
+            });
+       user.save(function(err,reply){
+        console.log(err,reply,"UserDetailsSave details");
+        let channel = new ChannelInfo({
+                    channelName: projectName+"#general",
+                    members: membersList
+                });
+            channel.save(function(err,reply){
+                console.log(err,"If null,Thn Saved All Details");
+            })
+       })
+                 })
+       
+    })
 }
 var mongoose = require('mongoose');

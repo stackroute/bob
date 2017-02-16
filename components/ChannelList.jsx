@@ -11,6 +11,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
 import Subheader from 'material-ui/Subheader';
 import { Grid, Row, Col} from 'react-flexbox-grid/lib';
+import Paper from 'material-ui/Paper';
 let SelectableList = makeSelectable(List);
 injectTapEventPlugin();
 import cookie from 'react-cookie';
@@ -27,16 +28,18 @@ export default class ChannelList extends React.Component{
     this.handleSubmit=this.handleSubmit.bind(this);
    } 
 
-
+   componentDidMount() {
+     console.log(this.props.channelList,this.props.currentChannel,"Inside ChannelList");
+   }
 
   handleChange(item){
-    console.log("setCurrentChannel", item);
+   // console.log("setCurrentChannel", item);
     var temp=this.props.currentChannel;
     this.props.setCurrentChannel(item,temp);
   }
   
   handleAddChannel(){
-        console.log("Icon clicked");
+        //console.log("Icon clicked");
     this.setState({open:true});
   
   }
@@ -50,12 +53,12 @@ export default class ChannelList extends React.Component{
   }
 
   handleSubmit(){
-    this.props.socket.emit('newChannel', cookie.load('userId'),cookie.load('projectName'), this.state.channelName);
+    this.props.socket.emit('newChannel', this.props.userName,cookie.load('projectName'),this.state.channelName);
     this.setState({open:false,channelName:""})
   }
 
   render(){
-    console.log(this.props,"hi");
+    //console.log(this.props,"hi");
    let twoD = {};
    this.props.channelList.forEach((item,i)=>{
      let splitted = item.split("#");
@@ -96,6 +99,7 @@ export default class ChannelList extends React.Component{
     return(
       <div style={{height:'100%',border:'solid 1px #d9d9d9'}}>
        <Grid style={{height:'100%',width:"100%"}}>
+       <Paper style={{height:'100%',width:"100%"}}>
           <Row style={{width:"100%"}}>
             <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%',width:"100%"}}>
        <Subheader style={{fontSize:"18px"}}>Channels<IconButton style={{marginLeft:"100px"}}  onTouchTap={this.handleAddChannel}><AddCircle/></IconButton></Subheader>
@@ -109,6 +113,7 @@ export default class ChannelList extends React.Component{
       </List>
       </Col>
           </Row>
+           </Paper>
         </Grid>
       </div>
     );

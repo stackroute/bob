@@ -11,7 +11,7 @@ export default class Chat extends React.Component{
 		super(props);
 		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:""};
 		socket=this.props.socket;
-		console.log("Inside Chat");
+		//console.log("Inside Chat");
 	}
 	
 	componentDidMount() {	
@@ -37,7 +37,7 @@ export default class Chat extends React.Component{
 	}
 
 	componentWillReceiveProps(nextProps){
-		console.log(nextProps,this.props,"cwp chatarea outisde if");
+		//console.log(nextProps,this.props,"cwp chatarea outisde if");
 		if(this.props.channelID!=nextProps.channelID){
 			console.log(nextProps,this.props,"cwp chatarea inside if");
 			let msg = {"pageNo":"initial_primary","channelName":nextProps.channelID};//increment the pages displayed currently.
@@ -52,7 +52,7 @@ export default class Chat extends React.Component{
 	}
 
 	handleTakeMessage(channelId,msg){
-		console.log("channel name: ",channelId,"message: ",msg);
+		//console.log("channel name: ",channelId,"message: ",msg);
 		if(channelId===this.props.channelID){
 
 			if(msg.hasOwnProperty('typer')){
@@ -61,7 +61,7 @@ export default class Chat extends React.Component{
 
 			else 
 			{
-				console.log(msg);
+				//console.log(msg);
 				msg = this.handleTime(msg);
 				this.setState((prevState,props)=>{ 
 						prevState.chatHistory.push(msg); 
@@ -77,7 +77,7 @@ export default class Chat extends React.Component{
 		}
 	}
 	handleChatHistory(msg,next){
-		console.log(msg);
+		//console.log(msg);
 		let mess = this.state.chatHistory;
 		msg.forEach((msgob)=>{
 
@@ -98,7 +98,7 @@ export default class Chat extends React.Component{
              date[2] = "AM";
          }
          date = date[0]+":"+date[1]+" "+date[2];
-	console.log(new Date().getHours(),date,"=======================");
+	//console.log(new Date().getHours(),date,"=======================");
          msg.TimeStamp = date;
         return msg;
     }
@@ -120,7 +120,7 @@ export default class Chat extends React.Component{
 
 
 	render(){
-		console.log(this.props.channelID,"Inside Chat");
+		//console.log(this.props.channelID,"Inside Chat");
 		let typ;
 		if(this.state.typing.length===1){
 			typ = <Chip>{this.state.typing + " is typing"}</Chip>;

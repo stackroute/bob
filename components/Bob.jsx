@@ -9,38 +9,35 @@ import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
 import { Grid, Row, Col} from 'react-flexbox-grid/lib';
 import cookie from 'react-cookie';
-
+var base64 = require('base-64');
+var utf8 = require('utf8');
 
 export default class Bob extends React.Component{
       constructor(props){
         super(props);
-        console.log(cookie.load('userId'),cookie.load('projectName'));
+        console.log(cookie.load(''),cookie.load('projectName'));
+         var a=cookie.load("Token");
+         var b=base64.decode(a.split('.')[1]);
+         var c=utf8.decode(b);
+        // console.log(c,c.userName,"Nameee");
         this.state={
-          userName:cookie.load('userId'),
+          userName:c,
           channelsList:[],
-          currentChannel:cookie.load('projectName')+"#general",
+          currentChannel:"",
           unreadCount:{},
           lat:{},
-          socket:null,
-          loggedIn:true
+          socket:null
 };
         this.toggleCurrentChannel=this.toggleCurrentChannel.bind(this);
         this.handleChange=this.handleChange.bind(this);
-        //this.handleClick=this.handleClick.bind(this);
         this.resetCurrentChannelUnread=this.resetCurrentChannelUnread.bind(this);
-        //this.getProjectList=this.getProjectList.bind(this);
-        //this.getChannelsInProject=this.getChannelsInProject.bind(this);
       }
        componentDidMount(){
-         if(this.state.userName==""){
-
-          
-
-         }else{
-          var socket=io('http://172.23.238.193:8000');
+          var socket=io('http://172.23.238.171:8000');
            let that=this;
-              socket.on('channelList', function (list,unreadCount,lat) {
-                that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,loggedIn:true});
+              socket.on('channelList', function (list,unreadCount,lat,currentChannel) {
+                console.log(list,"List of Channels");
+                that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel});
                 that.resetCurrentChannelUnread(that.state.unreadCount);
                  
             });
@@ -50,7 +47,7 @@ export default class Bob extends React.Component{
                 let unread=that.state.unreadCount;
                 temp[prevChannel]=d;
                 unread[prevChannel]=0;
-                console.log(currentChannel,"bbbbbb");
+                //console.log(currentChannel,"bbbbbb");
                 //unread[that.state.currentChannel]=0;
                 that.setState({lat:temp,unreadCount:unread})
                 that.resetCurrentChannelUnread(that.state.unreadCount);
@@ -73,16 +70,11 @@ export default class Bob extends React.Component{
                socket.emit("login",this.state.userName,cookie.load('projectName'));
               this.setState({socket:socket});
          }
-              
-             
-
-
-      }
 
       resetCurrentChannelUnread(unreadCount){
           var temp=unreadCount;
                 var channel=this.state.currentChannel;
-                console.log(temp[channel],"temp");
+                //console.log(temp[channel],"temp");
                 let that=this;
                  setTimeout(function(){
                       temp[channel]=0
@@ -91,41 +83,6 @@ export default class Bob extends React.Component{
                      }.bind(this),500);
 
       }
-
-      // getProjectList() {
-      //    let list=this.state.channelsList;
-      //    let projects = [];
-      //    for (var i = 0,j=0; i < list.length; i++) {
-      //         let a=list[i].split('#');
-      //         if(projects.indexOf(a[0])==-1){
-      //            projects[j]=a[0];
-      //            j++;
-      //         }  
-      //   }
-      //   return projects;    
-      // }
-
-      // getChannelsInProject(projectName) {
-      //   let a=projectName.length;
-      //   let name="";
-      //  if(projectName=='bob'){
-      //  name=projectName+"#general";}
-      //  else{
-      //    name=projectName+"#UI";
-      //  }
-      //  this.setState({currentChannel:name})
-      //   let b=[];
-      //   let that=this;
-      //   let j=0;
-      //   this.state.channelsList.map((item,i)=>{
-      //     if(item.substring(0,a)==projectName){
-      //       b[j]=item;
-      //       j++;
-      //     }
-      //   })
-      //   this.setState({projectsList:b,loggedIn:true})
-      // }
-
      
       handleChange(e){
         this.setState({userName:e.target.value})
@@ -136,7 +93,7 @@ export default class Bob extends React.Component{
       }
 
       toggleCurrentChannel(item,prevChannel){
-        console.log("Inside the bob ",item);
+        //console.log("Inside the bob ",item);
         this.setState({
           currentChannel:item
         });
@@ -150,16 +107,16 @@ export default class Bob extends React.Component{
       }
      
       render(){
-       // let a=this.getProjectList();
+      // console.log(this.state.userName,"User Name");
         let chatArea;
          if(this.state.socket!=null){
-        console.log(this.state.currentChannel,"current Channel");
+        //console.log(this.state.currentChannel,"current Channel");
           
           chatArea=(
-          <Grid  style={{height:"86vh",width:"100%"}}>
+          <Grid  style={{height:"89vh",width:"100%"}}>
             <Row style={{height:"100%",width:"100%"}}>
               <Col xs={12} sm={3} md={3} lg={3} style={{height:"100%"}}>
-               <ChannelList socket={this.state.socket} channelList={this.state.channelsList} currentChannel={this.state.currentChannel} unreadCount={this.state.unreadCount} setCurrentChannel={this.toggleCurrentChannel}/>
+               <ChannelList socket={this.state.socket} userName={this.state.userName} channelList={this.state.channelsList} currentChannel={this.state.currentChannel} unreadCount={this.state.unreadCount} setCurrentChannel={this.toggleCurrentChannel}/>
               </Col>
               <Col xs={12} sm={9} md={9} lg={9} style={{height:"100%"}}>
              <ChatArea channelID={this.state.currentChannel} socket={this.state.socket} LiveUnreadCount={this.handleLiveUnreadCount.bind(this)} userName={this.state.userName}/>
@@ -173,7 +130,7 @@ export default class Bob extends React.Component{
          }
         //console.log(a);
         return(
-           <Grid style={{height:'100%',width:"100%",marginTop:"10px"}}>
+           <Grid style={{height:'100%',width:"100%",marginTop:"1px"}}>
           <Row style={{width:"100%"}}>
                 <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
                   {chatArea}

@@ -29,8 +29,8 @@ export default class ChatHistory extends Component {
 			});
 
 		let msg = {"pageNo":"initial_primary","channelName":this.props.channelId};//increment the pages displayed currently.
-		console.log("this is client sending request    ",msg);
-		console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nthis is mounted\n\n\n\n\n\n\n\n\n\n\n\n\n");
+		//console.log("this is client sending request    ",msg);
+		//console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nthis is mounted\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		this.props.psocket.emit('receiveChatHistory',msg);
 	}
 	
@@ -40,7 +40,7 @@ export default class ChatHistory extends Component {
 	getEarlierMessages(){
 
 		let msg = {"pageNo":(this.props.next),"channelName":this.props.channelId};
-		console.log(msg);
+		//console.log(msg);
 		this.props.psocket.emit('receiveChatHistory',msg);
 	}
 
@@ -48,8 +48,8 @@ export default class ChatHistory extends Component {
 	
 
 	render() {
-		console.log("this is chatHistory channelid ",this.props.channelId);
-		console.log(this.props.chatHistory);
+		//console.log("this is chatHistory channelid ",this.props.channelId);
+		//console.log(this.props.chatHistory);
 		
 		let lem;
 		if(this.state.historyEnded)
