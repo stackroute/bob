@@ -10,6 +10,7 @@ import io from 'socket.io-client';
 import cookie from 'react-cookie';
 import Notifications from 'material-ui/svg-icons/social/notifications';
 import Chat from 'material-ui/svg-icons/communication/chat';
+import Add from 'material-ui/svg-icons/content/add';
 export default class Header extends React.Component{
 
 	constructor(props) {
@@ -25,6 +26,7 @@ export default class Header extends React.Component{
 	    if(cookie.load("Token")!=undefined)
 	    {
 	    	a=<div>
+	         <Link to={'project'}><IconButton tooltip="Create Project" tooltipPosition="bottom-left" iconStyle={{color:"white"}}><Add/></IconButton></Link>
 	    	  <Link to={'notification'}><IconButton tooltip="Notifications" tooltipPosition="bottom-left" iconStyle={{color:"white"}}><Notifications/></IconButton></Link>
 			<Link to={'bob'}><IconButton tooltip="Chat Screen" tooltipPosition="bottom-left" iconStyle={{color:"white"}}><Chat/></IconButton></Link>
 			<Link to={'/'}><IconButton tooltip="LogOut" tooltipPosition="bottom-left" onTouchTap={this.handleLogOut} iconStyle={{color:"white"}}><SettingsPower/></IconButton></Link>
