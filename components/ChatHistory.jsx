@@ -3,6 +3,7 @@ import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'mat
 import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import FlatButton from 'material-ui/FlatButton';
 import Paper from 'material-ui/Paper';
+import ReactDOM from 'react-dom';
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
@@ -20,10 +21,17 @@ export default class ChatHistory extends Component {
 		super(props);	
 		this.state={historyEnded:false};
 	}
+
+
 	
+scrollToBottom() {
+    const node = ReactDOM.findDOMNode(this.messagesEnd);
+    node.scrollIntoView({behavior: "smooth"});
+}
+
 	
 	componentDidMount(){
-		
+		this.scrollToBottom();
 		this.props.psocket.on('historyEmpty',(msg)=>{
 				this.handleHistoryEmpty(msg);
 			});
@@ -33,6 +41,9 @@ export default class ChatHistory extends Component {
 		//console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nthis is mounted\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		this.props.psocket.emit('receiveChatHistory',msg);
 	}
+    componentDidUpdate(){
+        this.scrollToBottom();
+    }
 	
 	handleHistoryEmpty(msg){
 		this.setState({historyEnded:true});
@@ -74,8 +85,11 @@ return (
 	<Paper style={{ height:'100%'}}>
 		{lem}
 		{messageList}
+		<div style={ {float:"left", clear: "both"} }
+    ref={(el) => { this.messagesEnd = el; }}></div>
 	</Paper>
 			
 		);
 	}
 }
+
