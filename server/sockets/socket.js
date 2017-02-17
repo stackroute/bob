@@ -326,7 +326,9 @@ module.exports = function(io, socket) {
 
     socket.on("addNewUser",function(userName,projectName,membersList){
         console.log(userName,projectName,membersList);
-       let pn = projectName + "#general";
+        UserInfo.findOne({username:userName},function(err,reply){
+            if(reply==null){
+                let pn = projectName + "#general";
                 let latob = {};
                 latob[pn] = new Date();
                 console.log(latob);
@@ -352,6 +354,28 @@ module.exports = function(io, socket) {
             })
        })
                  })
+            }
+            else{
+                console.log("Inside Already Existing User");
+                let obj = {};
+                let name = 'lat.' + projectName+"general";
+                obj[name] = new Date();
+                LatList.findOneAndUpdate({ username: userName }, { $set: obj }, function(err, reply) {
+                console.log('lat updated ');
+                UserInfo.findOneAndUpdate({username: userName},{$push:{channelList: projectName+"#general"}}, function(err, reply){
+                    console.log(err,reply);
+                     let channel = new ChannelInfo({
+                     channelName: projectName+"#general",
+                     members: membersList
+                     });
+                     channel.save(function(err,reply){
+                console.log(err,"If null,Thn Saved All Details");
+            })
+                });
+            });
+            }
+        })
+       
        
     })
 }
