@@ -33,10 +33,9 @@ export default class Bob extends React.Component{
         this.resetCurrentChannelUnread=this.resetCurrentChannelUnread.bind(this);
       }
        componentDidMount(){
-          var socket=io('http://bob.blr.stackroute.in/');
+          var socket=io('http://172.23.238.171:8000');
            let that=this;
               socket.on('channelList', function (list,unreadCount,lat,currentChannel) {
-                console.log(list,"List of Channels");
                 that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel});
                 that.resetCurrentChannelUnread(that.state.unreadCount);
                  
@@ -93,7 +92,7 @@ export default class Bob extends React.Component{
       }
 
       toggleCurrentChannel(item,prevChannel){
-        //console.log("Inside the bob ",item);
+        console.log("Inside the bob the current and previous channel ",item,prevChannel);
         this.setState({
           currentChannel:item
         });
@@ -109,7 +108,7 @@ export default class Bob extends React.Component{
       render(){
       // console.log(this.state.userName,"User Name");
         let chatArea;
-         if(this.state.socket!=null){
+         if(this.state.socket!=null&&this.state.currentChannel!=""){
         //console.log(this.state.currentChannel,"current Channel");
           
           chatArea=(
