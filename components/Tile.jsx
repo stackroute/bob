@@ -29,7 +29,7 @@
 		}
 		componentWillMount(){
 			let that = this;
-			request.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
+			request.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
 	                .end(function(err,res){
 
 
