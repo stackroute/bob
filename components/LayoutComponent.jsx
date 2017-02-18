@@ -27,6 +27,18 @@ export default class LayoutComponent extends Component {
            }
         }
     saveLayout(Layout){
+      request.put('http://bob.blr.stackroute.in:8000/user/'+this.state.userId+'/Layout')
+                .set('Content-Type','application/json')
+                .send({layout:Layout})
+                .end(function(err,res){
+                   console.log("this is response from server on load\n\n\n\n ",res,"\n\n\n\n");
+                   let parsed_res = JSON.parse(res.text);
+                   console.log("this is parsed res",parsed_res);
+                   if(parsed_res.result)
+                    console.log("Layout saved in server.");
+                   else
+                    console.log("An error in server saving layout");
+                });
         
         
         // //console.log("Layout",Layout);
@@ -48,7 +60,7 @@ export default class LayoutComponent extends Component {
     }
     componentWillMount(){
         let that = this;
-       request.get('http://bob.blr.stackroute.in/user/'+this.state.userId+'/Layout')
+       request.get('http://bob.blr.stackroute.in:8000/user/'+this.state.userId+'/Layout')
                 .end(function(err,res){
                    console.log("this is response from server on load\n\n\n\n ",res,"\n\n\n\n");
                    let parsed_res = JSON.parse(res.text);
@@ -62,21 +74,22 @@ export default class LayoutComponent extends Component {
 addTile(){
     console.log("clicked");
     let that = this;
-    request.post('http://bob.blr.stackroute.in/user/'+that.state.userId+'/Tiles/'+cookie.load('projectName'))
+    request.post('http://bob.blr.stackroute.in:8000/user/'+that.state.userId+'/Tiles/'+cookie.load('projectName'))
                 .end(function(err,res){
-                   console.log("this is response from server\n\n\n\n ",res,"\n\n\n\n");
+                   console.log("this is response from server on adding tile\n\n\n\n ",res,"\n\n\n\n");
                    if(JSON.parse(res.text).result){
-                        request.get('http://bob.blr.stackroute.in/user/'+that.state.userId+'/Layout')
-                                    .end(function(err,res){
-                                        console.log("this is response from server\n\n\n\n ",res,"\n\n\n\n");
-                                        let parsed_res = JSON.parse(res.text);
-                                        console.log("this is parsed res",parsed_res);
-                                        if(parsed_res.result)
-                                          that.setState({layout:parsed_res.data});
-                                    });
-
+                      
+                        request.get('http://bob.blr.stackroute.in:8000/user/'+that.state.userId+'/Layout')
+                            .end(function(err,res){
+                                console.log("this is response from server on getting layout\n\n\n\n ",res,"\n\n\n\n");
+                                let parsed_res = JSON.parse(res.text);
+                                console.log("this is parsed res of layout get",parsed_res);
+                                if(parsed_res.result)
+                                    that.setState({layout:parsed_res.data});
+                });
                    }
                 });
+    
   //  console.log("clicked");
     
 
@@ -150,7 +163,7 @@ if(this.state.layout.length>0)
         return (
             <MuiThemeProvider>
             <Paper>
-            <ReactGridLayout className="layout" layout={this.state.layout} cols={10} width={1200} rowHeight={60}>
+            <ReactGridLayout className="layout" onLayoutChange={this.saveLayout.bind(this)} layout={this.state.layout} cols={10} width={1200} rowHeight={60}>
                         
             <div key = {"add_tile"}><AddTile  passfunc = {this.addTile.bind(this)}/></div>
 

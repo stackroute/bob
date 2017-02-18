@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
     , Schema = mongoose.Schema;
 let TileSchema = new Schema({
-  projects : {},
+  channels : [],
   colors: {},
   tags: [String],
   bookmarks: [Schema.Types.ObjectId],
