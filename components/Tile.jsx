@@ -14,7 +14,6 @@ import AutoComplete from 'material-ui/AutoComplete';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
 import CurrentFilter from './Currentfilter.jsx';
-import Formsy from 'formsy-react';
 
 
 
