@@ -53,7 +53,7 @@ app.get('/dashboard', function(req, res) {
             console.log(token);
             UserInfo.find({ username: payload }).exec((err, reply) => {
                 if (reply.length === 0) {
-                    request.post('http://bob.blr.stackroute.in/user/' + payload + "/Layout")
+                    request.post('http://bob.blr.stackroute.in:8000/user/' + payload + "/Layout")
                         .end(function(err, res) {
 
                             if (JSON.parse(res.text).result)

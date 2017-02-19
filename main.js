@@ -19,13 +19,22 @@ function checkAuth(nextState,replace){
 }
 }
 
+function checkLoggedIn(nextState,replace){
+  //console.log(cookie.load("Token"));
+  if(cookie.load("Token")!=undefined) {
+    replace({
+      pathname: 'bob'
+    })
+}
+}
+
 ReactDOM.render(
   <MuiThemeProvider>
   <div>
   													
     <Router history={hashHistory}>
     <Route path = '/' component={Header}>
-      <IndexRoute component={Login}/>
+      <IndexRoute component={Login} onEnter={checkLoggedIn}/>
       <Route path='/project' component={ProjectDetails} onEnter={checkAuth}/>
       <Route path='/bob' component={Bob} onEnter={checkAuth}/>
       <Route path='/notification' component={LayoutComponent} onEnter={checkAuth}/>

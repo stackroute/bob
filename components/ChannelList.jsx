@@ -31,6 +31,7 @@ export default class ChannelList extends React.Component{
     this.handleNameChange=this.handleNameChange.bind(this);
     this.handleSubmit=this.handleSubmit.bind(this);
     this.handleDrawerOpen=this.handleDrawerOpen.bind(this);
+    this.handleProjectChange=this.handleProjectChange.bind(this);
    } 
 
    componentDidMount() {
@@ -66,17 +67,20 @@ export default class ChannelList extends React.Component{
   }
 
   handleDrawerOpen(name){
-    console.log(this.state.dOpen,name,"Name Clicked in Drawer");
-    this.setState({currentProject:name})
-    this.props.setCurrentChannel(name+"#"+"general",this.props.currentChannel);
     if(this.state.dOpen)
     this.setState({dOpen:false});
     else
     this.setState({dOpen:true});
   }
 
+  handleProjectChange(name){
+    this.setState({currentProject:name,dOpen:false});
+    this.props.setCurrentChannel(name+"#"+"general",this.props.currentChannel);
+
+  }
+
   render(){
-    console.log(this.state.currentProject,"Render of ChannelList");
+    console.log(this.props.channelList,"Render of ChannelList");
   //  let twoD = {};
   //  this.props.channelList.forEach((item,i)=>{
   //    let splitted = item.split("#");
@@ -153,7 +157,7 @@ let channelList=<div>{channels.map((item,i)=>{
        <Subheader style={{fontSize:"20px"}}>Your Projects</Subheader>
        <SelectableList value={this.state.currentProject}>
           {projects.map((item,i)=>{
-            return(<ListItem key={i} value={item} onTouchTap={this.handleDrawerOpen.bind(this,item)}>{item}</ListItem>);
+            return(<ListItem key={i} value={item} onTouchTap={this.handleProjectChange.bind(this,item)}>{item}</ListItem>);
           })}
         </SelectableList>
       </Drawer>

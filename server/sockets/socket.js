@@ -246,13 +246,9 @@ module.exports = function(io, socket) {
            
             //search the DB for username
         UserInfo.findOne({ username: usrname }, function(err, reply) {
-            console.log(reply.currentChannel);
+            //console.log(reply.currentChannel,reply.channelList,"Login Event");
             currentChannelName=reply.currentChannel;
-            var channelList = reply.channelList.filter((item, i) => {
-                if ((item.split('#'))[0] === reply.currentChannel.split("#")[0]) {
-                    return item;
-                }
-            });
+            var channelList = reply.channelList;
             console.log("This is reply.channelList", reply.channelList);
             async.each(reply.channelList, function(item, callback) {
                 console.log(item);

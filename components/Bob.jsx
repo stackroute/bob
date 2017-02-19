@@ -15,7 +15,7 @@ var utf8 = require('utf8');
 export default class Bob extends React.Component{
       constructor(props){
         super(props);
-        console.log(cookie.load(''),cookie.load('projectName'));
+        //console.log(cookie.load(''),cookie.load('projectName'));
          var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var c=utf8.decode(b);
@@ -33,9 +33,10 @@ export default class Bob extends React.Component{
         this.resetCurrentChannelUnread=this.resetCurrentChannelUnread.bind(this);
       }
        componentDidMount(){
-          var socket=io('http://bob.blr.stackroute.in:8000');
+          var socket=io('http://bob.blr.stackroute.in');
            let that=this;
               socket.on('channelList', function (list,unreadCount,lat,currentChannel) {
+                console.log(currentChannel,"Bob current Channel Name");
                 that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel});
                 cookie.save('projectName',currentChannel.split('#')[0]);
                 that.resetCurrentChannelUnread(that.state.unreadCount);
