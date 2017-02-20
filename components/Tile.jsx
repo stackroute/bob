@@ -284,21 +284,22 @@ export default class Tile extends React.Component{
 						{dialog}
 						<AutoPlaySwipeableViews>
 		                	{
-		                		this.state.msgList.map((details, i) => (
-		                     		<div key={i}>
-		                              	<CardHeader title={details.channelId.split("#")[0]+"/"
-		                              		+details.channelId.split("#")[1]+"/"
-			                              	+details.sender}  subtitle = {details.TimeStamp}
-			                            >     
-		                              		<IconButton onClick={this.handleEdit.bind(this)} >
-		                              			<SettingsIcon />
-		                              		</IconButton>   
-		                              	</CardHeader>
-		                              	<CardText>
-		                               		{details.msg}
-		                              	</CardText>
-		                            </div>
-		                            )
+		                		this.state.msgList.map((details, i) => {
+		                			return (
+		                				    <div key={i}>
+		                				    	<CardHeader title={details.channelId.split("#")[0]+"/"
+		                				        	+details.channelId.split("#")[1]+"/"
+		                					        +details.sender}  subtitle = {details.TimeStamp}
+		                					    >     
+		                				        	<IconButton onClick={this.handleEdit.bind(this)} >
+		                				                <SettingsIcon />
+		                				            </IconButton>   
+		                				        </CardHeader>
+		                				        <CardText>
+		                				        	{details.msg}
+		                				        </CardText>
+		                				    </div>)
+		                			}
 		                		)
 		                	}
 		                </AutoPlaySwipeableViews>
