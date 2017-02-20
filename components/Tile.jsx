@@ -298,28 +298,28 @@ export default class Tile extends React.Component{
 			return (<MuiThemeProvider muiTheme={muiTheme}><div>
 						{dialog}
 						<AutoPlaySwipeableViews>
-		                	{
-		                		this.state.msgList.map((details, i) => {
-		                			return (
-		                				    <div key={i}>
-																	<Card style={{backgroundColor: '#E8EAF6',height:'100%'}}>
-		                				    	<CardHeader style={{ backgroundColor: '#F57C00'}} title={details.channelId.split("#")[0]+"/"
-		                				        	+details.channelId.split("#")[1]+"/"
-		                					        +details.sender}  subtitle = {details.TimeStamp}
-		                					    >
-		                				        	<IconButton onClick={this.handleEdit.bind(this)} >
-		                				                <SettingsIcon />
-		                				            </IconButton>
-		                				        </CardHeader>
-		                				        <CardText style={{ backgroundColor: '#FFF3E0'}}>
-		                				        	{details.msg}
-		                				        </CardText>
-																	</Card>
-			                            </div>
-			                            )
-			                		)
-			                	}
-			                </AutoPlaySwipeableViews>
+	                            {
+	                                this.state.msgList.map((details, i) => {
+	                                    return (
+	                                            <div key={i}>
+																								<Card style={{backgroundColor: '#E8EAF6',height:'100%'}}>
+	                                                <CardHeader style={{ backgroundColor: '#F57C00'}} title={details.channelId.split("#")[0]+"/"
+	                                                    +details.channelId.split("#")[1]+"/"
+	                                                    +details.sender}  subtitle = {details.TimeStamp}
+	                                                >
+	                                                    <IconButton onClick={this.handleEdit.bind(this)} >
+	                                                        <SettingsIcon />
+	                                                    </IconButton>
+	                                                </CardHeader>
+	                                                <CardText style={{ backgroundColor: '#FFF3E0'}}>
+	                                                    {details.msg}
+	                                                </CardText>
+																								</Card>
+	                                            </div>)
+	                                    }
+	                                )
+	                            }
+	                        </AutoPlaySwipeableViews>
 			            </div></MuiThemeProvider>);
 		}
 	}
