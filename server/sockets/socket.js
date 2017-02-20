@@ -12,6 +12,17 @@ let unreadCount = {};
 let currentChannelName = "";
 let currentUser = "";
 
+
+//Google Auth related variables ---------->
+let google = require('googleapis')
+  , calendar = google.calendar('v3')
+  , OAuth2 = google.auth.OAuth2
+  , clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com'
+  , clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr'
+  , redirect = 'http://bob.blr.stackroute.in/oauth2callback'
+  , oauth2Client = new OAuth2(clientId, clientSecret, redirect);
+
+
 module.exports = function(io, socket) {
 
     const sub = client.duplicate(); //subscriber for will subscribe to all channels he is member of
@@ -31,6 +42,132 @@ module.exports = function(io, socket) {
     socket.on('getResetNotification', handleResetNotification); //request for resetting chat history. FIXMEput new function from 6th sprint.
     socket.on('feedback', feedbackManager);
     socket.on('newChannel', newChannel);
+    socket.on('remainderAccepted', tokenSearch);
+
+    function tokenSearch(username, summary, location, sd, ed){
+      console.log('token search : ', username, summary, location, sd, ed);
+      GoogleAToken.findOne({username: username}, function(err, reply){
+        console.log('inside finduser :' , reply);
+        if (reply==null) {
+          socket.emit('noToken', username, summary, location, sd, ed);
+          console.log('inside find if');
+        }
+        else {
+          //console.log('else ', reply.token);
+          gfunction(oauth2Client, username, summary, location, sd, ed);
+          console.log('inside find else');
+        }
+      });
+    }
+
+    function gfunction(oauth2Client, username, summary, location, sd ,ed){
+        GoogleAToken.findOne({username: username}, function(err, reply){
+          if (reply==null) {
+            refreshToken(oauth2Client);
+          } else {
+            oauth2Client.credentials = reply.token;
+            createEvent(oauth2Client, summary, location, sd, ed);
+          }
+        });
+
+
+
+        function refreshToken(oauth2Client) {
+          oauth2Client.refreshAccessToken(function(err, token) {
+            if (err) {
+              console.log('Error while trying to retrieve access token', err);
+              return;
+            }
+            oauth2Client.credentials = token;
+            storeToken(token);
+            createEvent(oauth2Client, summary, location, sd, ed);
+
+          });
+        }
+
+        function storeToken(username, token) {
+          GoogleAToken.update({username: username},{$set:{token: token}},{upsert: true}, function(err, reply){
+            console.log('reply from storeToken : ',reply);
+          });
+        };
+
+        function createEvent(auth, summary, location, sd, ed) {
+          console.log('sd : ',sd);
+          console.log('ed : ',ed);
+          var event = {
+            'summary': summary,
+            'location': location,
+            'description': 'Remainder created by BoB !!!',
+            'start': {
+              'dateTime': sd,
+              'timeZone': 'America/Los_Angeles',
+            },
+            'end': {
+              'dateTime': ed,
+              'timeZone': 'America/Los_Angeles',
+            },
+            // 'recurrence': [
+            //   'RRULE:FREQ=DAILY;COUNT=2'
+            // ],
+            // 'attendees': [
+            //   {'email': 'lpage@example.com'},
+            //   {'email': 'sbrin@example.com'},
+            // ],
+            "reminders": {
+              "useDefault": "useDefault",
+              // # Overrides can be set if and only if useDefault is false.
+              // "overrides": [
+              //     {
+              //       "method": "reminderMethod",
+              //       "minutes": "reminderMinutes"
+              //     },
+              //     # ...
+              // ]
+            }
+          };
+
+          calendar.events.insert({
+            auth: auth,
+            calendarId: 'primary',
+            resource: event,
+          }, function(err, event) {
+            if (err) {
+              console.log('There was an error contacting the Calendar service: ' + err);
+              return;
+            }
+            console.log('Event created: %s', event.htmlLink);
+            socket.emit('eventCreated', event.htmlLink);
+          });
+        }
+
+        function listEvents(auth) {
+          var calendar = google.calendar('v3');
+          calendar.events.list({
+            auth: auth,
+            calendarId: 'primary',
+            timeMin: (new Date()).toISOString(),
+            maxResults: 10,
+            singleEvents: true,
+            orderBy: 'startTime'
+          }, function(err, response) {
+            if (err) {
+              console.log('The API returned an error: ' + err);
+              return;
+            }
+            var events = response.items;
+            if (events.length == 0) {
+              console.log('No upcoming events found.');
+            } else {
+              console.log('Upcoming 10 events:');
+              for (var i = 0; i < events.length; i++) {
+                var event = events[i];
+                var start = event.start.dateTime || event.start.date;
+                console.log('%s - %s', start, event.summary);
+              }
+            }
+          });
+        }
+      }
 
     function newChannel(username, projectName, channelName) {
         console.log("newChannelEvent parameters : ", username, projectName, channelName);
@@ -126,6 +263,30 @@ module.exports = function(io, socket) {
         //     }
         // })
         //client.hincrby(sender + "/unreadNotifications", channelID, 1);
+        let url = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/976f7fd6-6a76-46c0-9857-6fcc99a99d8b?subscription-key=efd01e4bf7dc443180fcf9145ec03a0b"+"&q="+msg+"&verbose=true"
+          , summary=''
+          , location='';
+        ajax.get(url).end((error,response)=>{
+          console.log('inside ajaxCall');
+          if(response){
+            //console.log(response.body);
+            console.log('entities length : ', response.body.entities.length);
+            if(response.body.entities.length>=2){
+              console.log("entities[0] : ",response.body.entities[0].type,'entities[1] : ',response.body.entities[1].type);
+              if(response.body.entities[0].type==="meeting::summary"){
+                summary = response.body.entities[0].entity;
+              }
+              if(response.body.entities[1].type==="meeting::location"){
+                location = response.body.entities[1].entity;
+              }
+              console.log('status : ',response.body.dialog.status);
+              socket.emit('confirmSetRemainder', response.body.dialog.status.toUpperCase(), summary, location);
+            }
+            else {
+              console.log("Normal Message");
+            }
+          }
+        });
     }
 
     function handleTyping(name, channelId) { //emit the typing event to all connected users.
@@ -185,7 +346,7 @@ module.exports = function(io, socket) {
         });
     }
 
-    // 
+    //
 
     function getMongoHistory(msg) {
 
@@ -243,7 +404,7 @@ module.exports = function(io, socket) {
                     lat = res.lat;
                     //console.log(lat,"This is lat")
                 }
-           
+
             //search the DB for username
         UserInfo.findOne({ username: usrname }, function(err, reply) {
             //console.log(reply.currentChannel,reply.channelList,"Login Event");
@@ -316,7 +477,7 @@ module.exports = function(io, socket) {
                 })
                 socket.emit("takeProjectList",projects,users);
             })
-            
+
         })
     })
 
@@ -371,8 +532,8 @@ module.exports = function(io, socket) {
             });
             }
         })
-       
-       
+
+
     })
 
     socket.on("getMembersList",function(channelName){
@@ -381,4 +542,3 @@ module.exports = function(io, socket) {
         })
     })
 }
-var mongoose = require('mongoose');

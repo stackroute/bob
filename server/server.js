@@ -23,6 +23,16 @@ var token;
 var accessToken;
 app.use(cookieParser());
 
+//Google Auth ---------->
+let google = require('googleapis')
+  , calendar = google.calendar('v3')
+  , OAuth2Google = google.auth.OAuth2
+  , clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com'
+  , clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr'
+  , redirect = 'http://bob.blr.stackroute.in/oauth2callback'
+  , oauth2Client = new OAuth2Google(clientId, clientSecret, redirect)
+  , GoogleAToken = require('./model/googleatoken.schema.js');
+
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -78,10 +88,10 @@ app.get('/index.js', function(req, res) {
     console.log("got a request");
     res.sendFile(path.resolve(__dirname + "/../index.js"));
 });
-// parse application/x-www-form-urlencoded 
+// parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 
-// parse application/json 
+// parse application/json
 app.use(bodyParser.json())
 
 // app.post('/UserLogin', function(req, res) {
@@ -156,6 +166,31 @@ app.use(bodyParser.json())
 app.use('/', TilesRouter);
 app.use('/', DbRouter);
 
+
+//google auth and reminder set routes ---------->
+app.get('/oauth2callback', function(req, res) {
+  var code = req.query.code;
+  console.log('code : ',code);
+  oauth2Client.getToken(code, function(err, gtoken){
+    let gToken = gtoken;
+    let AccessToken = gtoken.access_token;
+    let RefreshToken = gtoken.refresh_token;
+    console.log('Token : ',gToken);
+    console.log('AccessToken : ', AccessToken);
+    console.log('RefreshToken : ', RefreshToken);
+    console.log('state ; ', req.query.state);
+    storeToken(req.query.state, gtoken);
+  });
+  res.redirect('http://bob.blr.stackroute.in/#/bob');
+  console.log("succesfully redirected");
+});
+
+//function to storeToken in DB ---------->
+function storeToken(username, token) {
+  GoogleAToken.update({username: username},{$set:{token: token}},{upsert: true}, function(err, reply){
+    console.log('reply from storeToken : ',reply);
+  });
+};
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
