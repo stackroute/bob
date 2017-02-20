@@ -45,7 +45,7 @@ export default class Tile extends React.Component{
 	componentWillMount(){
 		let that = this;
 		request
-			.get('http://bob.blr.stackroute.in:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
+			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
             .end(function(err,res){
                 console.log("this is response from server\n\n ",res,"\n\n");
                 let parsed_res = JSON.parse(res.text);
@@ -58,7 +58,7 @@ export default class Tile extends React.Component{
 	componentDidMount(){
 		let that = this;
 		request
-			.get('http://bob.blr.stackroute.in:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -76,7 +76,7 @@ export default class Tile extends React.Component{
 	handleEdit(){
 		let that = this;
 		request
-			.get('http://bob.blr.stackroute.in:8000/user/'+this.props.userId+'/channels')
+			.get('http://localhost:8000/user/'+this.props.userId+'/channels')
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -97,7 +97,7 @@ export default class Tile extends React.Component{
 			});
 
 		request
-			.get('http://bob.blr.stackroute.in:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -230,7 +230,7 @@ export default class Tile extends React.Component{
 
 	handleSave(){
 		request
-			.patch('http://bob.blr.stackroute.in:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.patch('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.send(this.state.filters)
 			.end(function(err,res){
 					console.log("result of save ",res.text);

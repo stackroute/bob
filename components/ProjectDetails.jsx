@@ -13,6 +13,8 @@ import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import AutoComplete from 'material-ui/AutoComplete';
 import cookie from 'react-cookie';
 import io from 'socket.io-client';
+
+
 var base64 = require('base-64');
 var utf8 = require('utf8');
 
@@ -30,15 +32,18 @@ export default class ProjectDetails extends Component {
        this.state={
            projectName:"",
            projectError:"",
-           socket:io('http://bob.blr.stackroute.in:8000'),
+           socket:io('http://localhost:8000'),
            projectsList:[],
            searchText:"",
            usersList:[],
            addUsers:[],
-           slideIndex:0
+           slideIndex:0,
+           projectsList:[],
+           projectName1:""
        }
 
        this.handleProjectChange=this.handleProjectChange.bind(this);
+       this.handleProjectChange1=this.handleProjectChange1.bind(this);
        this.handleClick=this.handleClick.bind(this);
        this.handleUpdateInput=this.handleUpdateInput.bind(this);
        this.handleNewRequest=this.handleNewRequest.bind(this);
@@ -111,6 +116,11 @@ handleUpdateInput(searchText){
     var a=this.state.slideIndex;
     this.setState({slideIndex:a-1})
    }
+
+   handleProjectChange1(e){
+    this.setState({projectName1:e.target.value});
+   }
+
    render() {
 
        return (
@@ -144,6 +154,9 @@ handleUpdateInput(searchText){
                <Link to={'bob'}><RaisedButton label="Create"  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/></Link>
            </div>
            </SwipeableViews>
+           <h3>Join A Project</h3>
+            <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} hintText="Teams" searchText={this.state.projectName1}  maxSearchResults={4} onUpdateInput={this.handleProjectChange1} dataSource={this.state.projectsList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
+            <RaisedButton label="Join" primary={true}/>
            </Paper>
           </Col>
         </Row>

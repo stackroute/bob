@@ -5,14 +5,23 @@ import ChatHistory from './ChatHistory.jsx';
 import NewMessage from './NewMessage.jsx';
 import Chip from 'material-ui/Chip';
 import Paper from 'material-ui/Paper';
-
+import SupervisorAccount from 'material-ui/svg-icons/action/supervisor-account';
+import PersonAdd from 'material-ui/svg-icons/social/person-add';
+import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from 'material-ui/Toolbar';
+import IconButton from 'material-ui/IconButton';
+import RaisedButton from 'material-ui/RaisedButton';
+import {BottomNavigation, BottomNavigationItem} from 'material-ui/BottomNavigation';
+import IconMenu from 'material-ui/IconMenu';
+import MenuItem from 'material-ui/MenuItem';
+import Popover, {PopoverAnimationVertical} from 'material-ui/Popover';
 let socket;
 export default class Chat extends React.Component{
 	constructor(props) {
 		super(props);
-		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:""};
+		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:"",members:[],membersOpen:false};
 		socket=this.props.socket;
-		//console.log("Inside Chat");
+		this.handleShowMembers=this.handleShowMembers.bind(this);
+		this.handleRequestClose=this.handleRequestClose.bind(this);
 	}
 	
 	componentDidMount() {	
@@ -34,6 +43,10 @@ export default class Chat extends React.Component{
 		socket.on('pempty',(msg)=>{
 			this.handlePempty(msg);
 		});
+
+		socket.on("takeMembersList",(membersList)=>{
+			this.setState({members:membersList,membersOpen:true});
+		})
 		
 	}
 
@@ -119,9 +132,17 @@ export default class Chat extends React.Component{
 		socket.emit('receiveChatHistory',msg1);
 	}
 
+	handleShowMembers(event){
+		this.setState({ anchorEl: event.currentTarget});
+		socket.emit("getMembersList",this.props.channelID);
+	}
+
+	handleRequestClose(){
+		this.setState({membersOpen:false});
+	}
 
 	render(){
-		//console.log(this.props.channelID,"Inside Chat");
+		console.log(this.state.members,"Inside Chat");
 		let typ;
 		if(this.state.typing.length===1){
 			typ = <Chip>{this.state.typing + " is typing"}</Chip>;
@@ -142,12 +163,32 @@ export default class Chat extends React.Component{
 			<center style={{height:"100%",width:"100%"}}>
 				<Paper style={{height:"100%",width:"100%",border: 'solid 1px #d9d9d9'}}>
 						<Grid  style={{height:'100%', width:"100%"}}>
-							<Row style={{ height:'6%',overflow:'hidden',width:"100%"}}>
+						<Row style={{ height:'8%',overflow:'hidden',width:"100%",margin:"0px"}}>
+								<Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
+			<Paper zDepth={1}>
+			<RaisedButton onTouchTap={this.handleShowMembers} label="Members" icon={<SupervisorAccount />}/>
+   <Popover open={this.state.membersOpen}
+   			anchorEl={this.state.anchorEl}
+          anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+          targetOrigin={{horizontal: 'left', vertical: 'top'}}
+          onRequestClose={this.handleRequestClose}
+          animation={PopoverAnimationVertical}
+        >
+   {this.state.members.map((item,i)=>{
+   		return(<MenuItem key={i} primaryText={item}/>)
+   })}
+  </Popover>
+   <IconMenu iconButtonElement={<IconButton tooltip="Add Members"><PersonAdd /></IconButton>} >
+  </IconMenu>
+      </Paper>
+					</Col>
+							</Row>
+							<Row style={{ height:'4%',overflow:'hidden',width:"100%"}}>
 								<Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
 						{typ}
 					</Col>
 							</Row>
-							<Row style={{height:'84%',overflowY:'auto',width:"100%"}}>
+							<Row style={{height:'78%',overflowY:'auto',width:"100%"}}>
 								<Col xs={12} sm={12} md={12} lg={12}>
 									<ChatHistory channelId={this.props.channelID} psocket={socket} next={this.state.next} username={this.props.userName} chatHistory={this.state.chatHistory}/>
 								</Col>

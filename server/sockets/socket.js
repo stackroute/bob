@@ -374,5 +374,11 @@ module.exports = function(io, socket) {
        
        
     })
+
+    socket.on("getMembersList",function(channelName){
+        ChannelInfo.find({channelName:channelName},function(err,reply){
+            socket.emit("takeMembersList",reply[0].members);
+        })
+    })
 }
 var mongoose = require('mongoose');
