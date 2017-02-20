@@ -39,8 +39,8 @@ export default class LayoutComponent extends Component {
                    else
                     console.log("An error in server saving layout");
                 });
-        
-        
+
+
         // //console.log("Layout",Layout);
         // ajax.post('http://172.23.238.164:3001/Layout')
         //     .send({"id": "cl","Tile": Layout})
@@ -51,12 +51,12 @@ export default class LayoutComponent extends Component {
         //            console.log("post was complete. with this layout ",Layout);
         //        });
 
-        
+
         //  this.setState({
         //         layout:Layout
         //     });
-           
-        
+
+
     }
     componentWillMount(){
         let that = this;
@@ -68,7 +68,7 @@ export default class LayoutComponent extends Component {
                    if(parsed_res.result)
                     that.setState({layout:parsed_res.data});
                 });
-        
+
     }
 
 addTile(){
@@ -78,7 +78,7 @@ addTile(){
                 .end(function(err,res){
                    console.log("this is response from server on adding tile\n\n\n\n ",res,"\n\n\n\n");
                    if(JSON.parse(res.text).result){
-                      
+
                         request.get('http://bob.blr.stackroute.in/user/'+that.state.userId+'/Layout')
                             .end(function(err,res){
                                 console.log("this is response from server on getting layout\n\n\n\n ",res,"\n\n\n\n");
@@ -89,11 +89,11 @@ addTile(){
                 });
                    }
                 });
-    
-  //  console.log("clicked");
-    
 
-                         
+  //  console.log("clicked");
+
+
+
             //          ajax.get('http://172.23.238.164:3001/Layout')
             // .end(function(err,response){
             //     if(err)
@@ -101,7 +101,7 @@ addTile(){
             //     else
             //         {
             //          console.log("setting the layout")
-                     
+
             //          console.log("got this layout:", response.body.Tile);
             //            let nx,ny,nw,nh,ni;
             //            let data = response.body.Tile;
@@ -125,8 +125,8 @@ addTile(){
 
             //         }
 
-            //    }.bind(this));            
-                    
+            //    }.bind(this));
+
                      // let addindex = data.findIndex(function(item){
                      //    return (item.i==="t1");
                      // });
@@ -139,9 +139,9 @@ addTile(){
         //            if(res.result)
         //             this.setState({Layout:res.data});
         //         });
-                     
+
 }
-    
+
 
     render() {
     //    console.log("Render called");
@@ -156,36 +156,35 @@ if(this.state.layout.length>0)
          else
             return false;
       });
-     tile_list = tile_list.map((item,i)=>{ 
+     tile_list = tile_list.map((item,i)=>{
          return (<div key={item.i}><Tile userId={this.state.userId} tileId = {item.i} /></div>);
      });
-  
+
         return (
             <MuiThemeProvider>
             <Paper>
             <ReactGridLayout className="layout" onLayoutChange={this.saveLayout.bind(this)} layout={this.state.layout} cols={10} width={1200} rowHeight={60}>
-                        
-            <div key = {"add_tile"}><AddTile  passfunc = {this.addTile.bind(this)}/></div>
 
-            {tile_list} 
-            
+            <div key = {"add_tile"}><AddTile style={{height:'100%'}} passfunc = {this.addTile.bind(this)}/></div>
+
+            {tile_list}
+
             </ReactGridLayout>
             </Paper>
             </MuiThemeProvider>
         );
     }
     else{
-       
+
          return (
             <MuiThemeProvider>
                <Paper>
                <center>
-                
-                 <CircularProgress size={120} thickness={5} /></center>      
+
+                 <CircularProgress size={120} thickness={5} /></center>
                 </Paper>
             </MuiThemeProvider>
         );
     }
  }
 }
-

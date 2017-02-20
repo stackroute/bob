@@ -9,6 +9,29 @@ import Header from './components/Header.jsx';
 import Login from './components/Login.jsx';
 import cookie from "react-cookie";
 import LayoutComponent from './components/LayoutComponent.jsx';
+import {cyan500,cyan50,indigo700,grey900,grey600,white,red,fullBlack, cyan700,
+  pinkA200,grey100, grey300, grey400, grey500, darkBlack,} from 'material-ui/styles/colors';
+  import getMuiTheme from 'material-ui/styles/getMuiTheme';
+  import {fade} from 'material-ui/utils/colorManipulator';
+
+  const muiTheme = getMuiTheme({
+    palette: {
+      primary1Color: indigo700,
+      primary2Color: cyan700,
+      primary3Color: grey400,
+      accent1Color: pinkA200,
+      accent2Color: grey100,
+      accent3Color: grey500,
+      textColor: darkBlack,
+      alternateTextColor: white,
+      canvasColor: white,
+      borderColor: grey300,
+      disabledColor: fade(darkBlack, 0.3),
+      pickerHeaderColor: cyan500,
+      clockCircleColor: fade(darkBlack, 0.07),
+      shadowColor: fullBlack,
+    }
+  });
 
 function checkAuth(nextState,replace){
   //console.log(cookie.load("Token"));
@@ -29,9 +52,9 @@ function checkLoggedIn(nextState,replace){
 }
 
 ReactDOM.render(
-  <MuiThemeProvider>
+  <MuiThemeProvider muiTheme={muiTheme}>
   <div>
-  													
+
     <Router history={hashHistory}>
     <Route path = '/' component={Header}>
       <IndexRoute component={Login} onEnter={checkLoggedIn}/>

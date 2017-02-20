@@ -14,15 +14,28 @@ import AutoComplete from 'material-ui/AutoComplete';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
 import CurrentFilter from './Currentfilter.jsx';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import {cyan500,cyan50,indigo700,grey900,grey600,white,red,fullBlack, cyan700,
+  pinkA200,grey100, grey300, grey400, grey500, darkBlack,grey50} from 'material-ui/styles/colors';
+  import getMuiTheme from 'material-ui/styles/getMuiTheme';
+  import {fade} from 'material-ui/utils/colorManipulator';
+
+const muiTheme = getMuiTheme({
+card: {
+	titleColor:'white',
+  subtitleColor:'grey50',
+
+}
+});
 
 
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 export default class Tile extends React.Component{
-	
+
 	constructor(props){
 		super(props);
-		
+
 		this.state={
 			msgList:[],
 			open:false,
@@ -70,7 +83,7 @@ export default class Tile extends React.Component{
 					});
 				}
 			});
-	    
+
 	}
 
 	handleEdit(){
@@ -122,8 +135,8 @@ export default class Tile extends React.Component{
      		this.setState((prevState,props)=>{
 	    		let index = prevState.filters.tags.indexOf(filter);
  			   	if(index>-1)
-        			prevState.filters.tags.splice(index,1); 
-       			return {filters:prevState.filters};     
+        			prevState.filters.tags.splice(index,1);
+       			return {filters:prevState.filters};
      		});
    		}
    		else if(category === "channel"){
@@ -146,7 +159,7 @@ export default class Tile extends React.Component{
 			return item.split('#')[0]===this.state.filterInputs.projectInput;
 		});
 		data = data.map((item,index)=>{
-			return '#'+item.split('#')[1]; 
+			return '#'+item.split('#')[1];
 		});
 		this.setState({filteredChannels:data});
 	}
@@ -171,7 +184,7 @@ export default class Tile extends React.Component{
 
 	handleProjectInput(value){
 		console.log("project");
-		let status;	
+		let status;
 		if(this.state.projects.includes(value))
 			status = true;
 		else
@@ -187,7 +200,7 @@ export default class Tile extends React.Component{
 				return {Okay:false};
 		});
 	}
-		
+
 	handleChannelInput(value){
 		console.log("channel");
 		let status;
@@ -234,7 +247,7 @@ export default class Tile extends React.Component{
 			.send(this.state.filters)
 			.end(function(err,res){
 					console.log("result of save ",res.text);
-					
+
 			});
 		this.handleClose.bind(this)();
 	}
@@ -242,7 +255,7 @@ export default class Tile extends React.Component{
 	render(){
 		console.log("pokay: ",this.state.pOkay,"cokay: ",this.state.cOkay,"okay: ",
 			this.state.Okay,"this.state.projects: ",this.state.projects,"filters ",this.state.filters," whole ",this.state);
-		
+
 		let dialog= (<Dialog open={this.state.open} onRequestClose={this.handleClose.bind(this)}
 						title="Change Tile Settings"
 					>
@@ -260,7 +273,7 @@ export default class Tile extends React.Component{
 						<RaisedButton disabled= {!this.state.Okay} label="ADD" primary={true}
 							onClick={this.handleAdd.bind(this)}
 						/>
-						<RaisedButton  label="SAVE" primary={true} 
+						<RaisedButton  label="SAVE" primary={true}
 							onClick={this.handleSave.bind(this)}
 						/>
 						<CurrentFilter filters={this.state.filters}
@@ -271,40 +284,44 @@ export default class Tile extends React.Component{
 		if(this.state.msgList.length===0){
 			return (<div>
 						{dialog}
-		            	<CardHeader>     
-		                    <IconButton  onClick={this.handleEdit.bind(this)} ><SettingsIcon  /></IconButton>   
+							<Card>
+		            	<CardHeader style={{ backgroundColor: '#F57C00'}}>
+		                    <IconButton  onClick={this.handleEdit.bind(this)} ><SettingsIcon  /></IconButton>
 		                </CardHeader>
-		                <CardText >
+		                <CardText style={{ backgroundColor: '#FFF3E0'}}>
 		                	"No Notifications to Display"
 		                </CardText>
+									</Card>
 		            </div>);
 		}
 		else{
-			return (<div>
+			return (<MuiThemeProvider muiTheme={muiTheme}><div>
 						{dialog}
 						<AutoPlaySwipeableViews>
 		                	{
 		                		this.state.msgList.map((details, i) => {
 		                			return (
 		                				    <div key={i}>
-		                				    	<CardHeader title={details.channelId.split("#")[0]+"/"
+																	<Card style={{backgroundColor: '#E8EAF6',height:'100%'}}>
+		                				    	<CardHeader style={{ backgroundColor: '#F57C00'}} title={details.channelId.split("#")[0]+"/"
 		                				        	+details.channelId.split("#")[1]+"/"
 		                					        +details.sender}  subtitle = {details.TimeStamp}
-		                					    >     
+		                					    >
 		                				        	<IconButton onClick={this.handleEdit.bind(this)} >
 		                				                <SettingsIcon />
-		                				            </IconButton>   
+		                				            </IconButton>
 		                				        </CardHeader>
-		                				        <CardText>
+		                				        <CardText style={{ backgroundColor: '#FFF3E0'}}>
 		                				        	{details.msg}
 		                				        </CardText>
-		                				    </div>)
-		                			}
-		                		)
-		                	}
-		                </AutoPlaySwipeableViews>
-		            </div>);
+																	</Card>
+			                            </div>
+			                            )
+			                		)
+			                	}
+			                </AutoPlaySwipeableViews>
+			            </div></MuiThemeProvider>);
 		}
-	}	
-		
+	}
+
 }
