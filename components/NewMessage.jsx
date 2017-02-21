@@ -16,11 +16,11 @@ export default class NewMessage extends Component {
 			open1: false,
 			open2:false,
 			summary:'',
-      location:'',
-      startDate:'',
-      endDate:'',
+		        location:'',
+		        startDate:'',
+		        endDate:'',
 			username:'',
-			eventLink:''
+			eventurl:''
 		};
 		this.handleOpen=this.handleOpen.bind(this);
 		this.handleClose=this.handleClose.bind(this);
@@ -51,7 +51,7 @@ export default class NewMessage extends Component {
 		});
 		that.props.psocket.on('eventCreated', function(link){
 			console.log('event created in new message : ',link);
-			that.setState({open2:true, eventLink:link});
+			that.setState({open2:true, eventurl:link});
 		})
 	}
 
@@ -131,8 +131,14 @@ export default class NewMessage extends Component {
 	}
 
 	render() {
-		console.log(this.state.username,"Inside Render of New Message");
-		const url='https://accounts.google.com/o/oauth2/auth?redirect_uri=http://bob.blr.stackroute.in/oauth2callback&state='+this.state.username+'&response_type=code&client_id=616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/calendar+https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&approval_prompt=force&access_type=offline';
+		let obj = {
+			username:this.state.username,
+			summary:this.state.summary,
+			location:this.state.location,
+			startDate:this.state.startDate,
+			endDate:this.state.endDate
+		}
+		const url='https://accounts.google.com/o/oauth2/auth?redirect_uri=http://bob.blr.stackroute.in/oauth2callback&state='+JSON.stringify(obj)+'&response_type=code&client_id=616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/calendar+https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&approval_prompt=force&access_type=offline';
 		const eventurl=this.state.eventurl;
 		const actions = [
 	     <FlatButton
