@@ -205,7 +205,7 @@ app.get('/oauth2callback', function(req, res) {
     storeToken(obj.username, gtoken);
     gfunction(oauth2Client, obj.username, obj.summary, obj.location, obj.startDate, obj.endDate);
   });
-    res.redirect('http://localhost:8000/#/bob');
+    res.redirect('http://bob.blr.stackroute.in/#/bob');
 });
 
 //function to storeToken in DB ---------->
