@@ -33,6 +33,28 @@ let google = require('googleapis')
   , oauth2Client = new OAuth2Google(clientId, clientSecret, redirect)
   , GoogleAToken = require('./model/googleatoken.schema.js');
 
+//MongoDB connection ---------->
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+    // we're connected!
+});
+
+
+
+//Redis connection ---------->
+client.on('connect', function() {
+    console.log('Connected');
+});
+
+//Socket Server ---------->
+server.listen(8000, function() {
+    console.log('server started on  8000');
+});
+
+//Socket.io connection ---------->
+io.on('connection', socket.bind(null, io));
+
+
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -178,11 +200,12 @@ app.get('/oauth2callback', function(req, res) {
     console.log('Token : ',gToken);
     console.log('AccessToken : ', AccessToken);
     console.log('RefreshToken : ', RefreshToken);
-    console.log('state ; ', req.query.state);
-    storeToken(req.query.state, gtoken);
+    let state= req.query.state
+      , obj=JSON.parse(state);
+    storeToken(obj.username, gtoken);
+    gfunction(oauth2Client, obj.username, obj.summary, obj.location, obj.startDate, obj.endDate);
   });
-  res.redirect('http://bob.blr.stackroute.in/#/bob');
-  console.log("succesfully redirected");
+    res.redirect('http://localhost:8000/#/bob');
 });
 
 //function to storeToken in DB ---------->
@@ -192,22 +215,114 @@ function storeToken(username, token) {
   });
 };
 
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-    // we're connected!
-});
+
+//g-Function ---------->
+function gfunction(oauth2Client, username, summary, location, sd ,ed){
+    GoogleAToken.findOne({username: username}, function(err, reply){
+      if (reply==null) {
+        refreshToken(oauth2Client);
+      } else {
+        oauth2Client.credentials = reply.token;
+        createEvent(oauth2Client, summary, location, sd, ed);
+      }
+    });
 
 
 
-//Redis connection ---------->
-client.on('connect', function() {
-    console.log('Connected');
-});
+    function refreshToken(oauth2Client) {
+      oauth2Client.refreshAccessToken(function(err, token) {
+        if (err) {
+          console.log('Error while trying to retrieve access token', err);
+          return;
+        }
+        oauth2Client.credentials = token;
+        storeToken(token);
+        createEvent(oauth2Client, summary, location, sd, ed);
 
-//Socket Server ---------->
-server.listen(8000, function() {
-    console.log('server started on  8000');
-});
+      });
+    }
 
-//Socket.io connection ---------->
-io.on('connection', socket.bind(null, io));
+    function storeToken(username, token) {
+      GoogleAToken.update({username: username},{$set:{token: token}},{upsert: true}, function(err, reply){
+        console.log('reply from storeToken : ',reply);
+      });
+    };
+
+    function createEvent(auth, summary, location, sd, ed) {
+      console.log('sd : ',sd);
+      console.log('ed : ',ed);
+      var event = {
+        'summary': summary,
+        'location': location,
+        'description': 'Remainder created by BoB !!!',
+        'start': {
+          'dateTime': sd,
+          'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+          'dateTime': ed,
+          'timeZone': 'America/Los_Angeles',
+        },
+        // 'recurrence': [
+        //   'RRULE:FREQ=DAILY;COUNT=2'
+        // ],
+        // 'attendees': [
+        //   {'email': 'lpage@example.com'},
+        //   {'email': 'sbrin@example.com'},
+        // ],
+        "reminders": {
+          "useDefault": "useDefault",
+          // # Overrides can be set if and only if useDefault is false.
+          // "overrides": [
+          //     {
+          //       "method": "reminderMethod",
+          //       "minutes": "reminderMinutes"
+          //     },
+          //     # ...
+          // ]
+        }
+      };
+
+      calendar.events.insert({
+        auth: auth,
+        calendarId: 'primary',
+        resource: event,
+      }, function(err, event) {
+        if (err) {
+          console.log('There was an error contacting the Calendar service: ' + err);
+          return;
+        }
+        console.log('Event created: %s', event.htmlLink);
+        //console.log('eventCreated', event.htmlLink);
+      });
+    }
+
+    function listEvents(auth) {
+      var calendar = google.calendar('v3');
+      calendar.events.list({
+        auth: auth,
+        calendarId: 'primary',
+        timeMin: (new Date()).toISOString(),
+        maxResults: 10,
+        singleEvents: true,
+        orderBy: 'startTime'
+      }, function(err, response) {
+        if (err) {
+          console.log('The API returned an error: ' + err);
+          return;
+        }
+        var events = response.items;
+        if (events.length == 0) {
+          console.log('No upcoming events found.');
+        } else {
+          console.log('Upcoming 10 events:');
+          for (var i = 0; i < events.length; i++) {
+            var event = events[i];
+            var start = event.start.dateTime || event.start.date;
+            console.log('%s - %s', start, event.summary);
+          }
+        }
+      });
+    }
+  }
+
