@@ -99,7 +99,8 @@ handleUpdateInput(searchText){
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
          this.state.addUsers.push(userName);
-       this.state.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers)
+       this.state.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers);
+       window.setTimeout(()=>{hashHistory.push('/bob');},1000);
    }
 
    handleSlideChange(){
@@ -174,7 +175,7 @@ handleUpdateInput(searchText){
                 <FloatingActionButton mini={true} onTouchTap={this.handleSlideChangeBackward} style={{marginBottom:"20px"}}>
                 <NavigateBefore />
                </FloatingActionButton><br/>
-               <Link to={'bob'}><RaisedButton label="Create"  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/></Link>
+              <RaisedButton label="Create"  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/>
            </div>
            </SwipeableViews>
            <h3>Join A Project</h3>
