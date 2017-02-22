@@ -442,7 +442,56 @@ module.exports = function(io, socket) {
     }
 
     socket.on("addNewUser",function(userName,projectName,membersList){
-        addMembers(userName,projectName+"#general",membersList,"private");
+       UserInfo.findOne({username:userName},function(err,reply){
+        if(reply==null){
+            let a=[];
+            a.push(projectName+"#general");
+            let user=new UserInfo({
+                username:userName,
+                channelList:a,
+                currentChannel:projectName+"#general"
+            });
+            user.save(function(err,reply){
+                let pn = projectName + "#general";
+                let latob = {};
+                latob[pn] = new Date();
+                let lat=new LatList({
+                    username:userName,
+                    lat:latob
+                });
+                    console.log("Channel Saving");
+                    let channel = new ChannelInfo({
+                    channelName: projectName+"#general",
+                    members: membersList,
+                    admin:userName,
+                    requests:[],
+                    type:"private"
+                });
+                channel.save(function(err,reply){
+           lat.save(function(err,reply){
+            let members=membersList;
+            let a=members.indexOf(userName);
+            members=members.splice(a,1);
+            async.each(membersList,function(member,callback){
+            UserInfo.findOneAndUpdate({username:member},{$push:{channelList:projectName+"#general"}},function(err,reply){
+            let pn = projectName+"#general";
+            let a = "lat." + pn;
+            var obj = {};
+            obj[a] = new Date();
+            LatList.update({ username:member}, { $set: obj }, function(err, reply) { 
+            })
+          });
+                   })
+                    console.log("Channel Saved");
+            })
+
+            })
+            })
+        }
+        else{
+            addMembers(userName,projectName+"#general",membersList,"private");
+        }
+      })
     })
 
     socket.on("getMembersList",function(channelName){
