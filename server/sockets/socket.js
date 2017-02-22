@@ -149,7 +149,7 @@ module.exports = function(io, socket) {
         let channel = projectName + '#' + channelName;
         let project= projectName+"#general";
         if(type=="public"){
-        
+
         ChannelInfo.find({channelName:project},function(err,reply){
           addMembers(username,channel,reply[0].members,type);
            UserInfo.findOne({ username: username }, function(err, reply) {
@@ -169,7 +169,7 @@ module.exports = function(io, socket) {
            let a = "lat." + pn;
             var obj = {};
             obj[a] = new Date();
-            LatList.update({ username:username }, { $set: obj }, function(err, reply) { 
+            LatList.update({ username:username }, { $set: obj }, function(err, reply) {
                 let a=[];
                 a.push(username);
                 let channelinfo = new ChannelInfo({
@@ -424,7 +424,7 @@ module.exports = function(io, socket) {
             let a = "lat." + pn;
             var obj = {};
             obj[a] = new Date();
-            LatList.update({ username:member }, { $set: obj }, function(err, reply) { 
+            LatList.update({ username:member }, { $set: obj }, function(err, reply) {
             })
             callback();
           });
@@ -458,11 +458,11 @@ module.exports = function(io, socket) {
             let a = "lat." + pn;
             var obj = {};
             obj[a] = new Date();
-            LatList.update({ username:member }, { $set: obj }, function(err, reply) { 
+            LatList.update({ username:member }, { $set: obj }, function(err, reply) {
               ChannelInfo.findOneAndUpdate({channelName:channelName},{$push:{members:member}},function(err,reply){
               })
             })
-           
+
         })
       })
     })

@@ -6,7 +6,7 @@ import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 export default class Login extends Component {
 	render() {
 		return (
-			 
+
               <center style={{height:"100%"}}>
               <Paper style={{height:"400px",width:"400px",marginTop:"20px"}}>
               <Grid  style={{height:'100%', width:"60%"}}>

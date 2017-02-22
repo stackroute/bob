@@ -33,7 +33,7 @@ export default class NewMessage extends Component {
 		this.handleChangeLocation=this.handleChangeLocation.bind(this);
 		this.handleChangeStartDate=this.handleChangeStartDate.bind(this);
 		this.handleChangeEndDate=this.handleChangeEndDate.bind(this);
-		// this.handleAddRem=this.handleAddRem.bind(this);
+		this.handleKeyPress=this.handleKeyPress.bind(this);
 	}
 
 	componentDidMount(){
@@ -121,9 +121,18 @@ export default class NewMessage extends Component {
 	handleChange(e){
 		this.props.psocket.emit('typing',this.props.name,this.props.channelId);	//emit the name of user typing.
 		console.log("hi bro",this.props);
-
 		this.setState({userInput:e.target.value});
 	}
+
+	handleKeyPress(event){
+	if(event.key === 'Enter'){
+		console.log('enter press here! ')
+		if(this.state.userInput!=="")
+		{this.props.psocket.emit("send message",this.props.name,this.props.channelId,this.state.userInput);
+				this.setState({userInput:""});}
+	}
+}
+
 	handleClick(){
 		if(this.state.userInput!=="")
 		{this.props.psocket.emit("send message",this.props.name,this.props.channelId,this.state.userInput);
@@ -223,7 +232,7 @@ export default class NewMessage extends Component {
 							<Row style={{width:"100%"}}>
 								<Col xs={11} sm={11} md={11} lg={11}>
 									<TextField style={{marginLeft:"0px"}} value={this.state.userInput} hintText="Type Message"
-										fullWidth={true} multiLine={true} rowsMax={2}
+										fullWidth={true} onKeyPress={this.handleKeyPress}
 										onChange={this.handleChange.bind(this)}/>
 								</Col>
 								<Col xs={1} sm={1} md={1} lg={1} style={{position:'relative',right:15,top:5}} >

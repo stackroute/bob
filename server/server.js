@@ -325,4 +325,3 @@ function gfunction(oauth2Client, username, summary, location, sd ,ed){
       });
     }
   }
-
