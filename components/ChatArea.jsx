@@ -14,14 +14,29 @@ import {BottomNavigation, BottomNavigationItem} from 'material-ui/BottomNavigati
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
 import Popover, {PopoverAnimationVertical} from 'material-ui/Popover';
+import request from 'superagent';
+import Dialog from 'material-ui/Dialog';
+import AutoComplete from 'material-ui/AutoComplete';
+
+const styles = {
+  chip: {
+    marginBottom: 4,
+  }
+  }
+
 let socket;
 export default class Chat extends React.Component{
 	constructor(props) {
 		super(props);
-		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:"",members:[],membersOpen:false};
+		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:"",searchText:"",members:[],addedMembers:[],addOpen:false,membersOpen:false,membersList:[]};
 		socket=this.props.socket;
 		this.handleShowMembers=this.handleShowMembers.bind(this);
-		this.handleRequestClose=this.handleRequestClose.bind(this);
+		this.handleMembersClose=this.handleMembersClose.bind(this);
+		this.handleAddMembers=this.handleAddMembers.bind(this);
+	    this.handleClose=this.handleClose.bind(this);
+	    this.handleUpdateInput=this.handleUpdateInput.bind(this);
+	    this.handleNewRequest=this.handleNewRequest.bind(this);
+	    this.handleSubmit=this.handleSubmit.bind(this);
 	}
 	
 	componentDidMount() {	
@@ -137,8 +152,50 @@ export default class Chat extends React.Component{
 		socket.emit("getMembersList",this.props.channelID);
 	}
 
-	handleRequestClose(){
+	handleMembersClose(){
 		this.setState({membersOpen:false});
+	}
+
+	handleAddMembers(){
+		let a=this.props.channelID.split("#");
+		request.get("http://bob.blr.stackroute.in/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
+			res=JSON.parse(res.text);
+			this.setState({membersList:res.data,addOpen:true});	
+				})
+	}
+
+
+	handleUpdateInput(searchText){
+	    this.setState({
+	      searchText: searchText,
+	    });
+	  };
+
+	handleClose(){
+		this.setState({addOpen:false})
+	}
+
+	handleNewRequest(){
+		this.state.addedMembers.push(this.state.searchText);
+		var a=this.state.searchText;
+		var b=this.state.membersList;
+		var c=b.indexOf(a);
+		b.splice(c,1);
+		this.setState({membersList:b,searchText:""})
+	}
+
+	handleRequestDelete(item){
+		var a=this.state.addedMembers;
+		var b=a.indexOf(item);
+		a.splice(b,1);
+
+		this.setState({addedMembers:a});
+		this.state.membersList.push(item);
+	}
+
+	handleSubmit(){
+		socket.emit("addMembers",this.props.channelID,this.state.addedMembers);
+		this.setState({addOpen:false});
 	}
 
 	render(){
@@ -159,6 +216,14 @@ export default class Chat extends React.Component{
 			{
 				typ = null;
 			}
+
+  const actions = <RaisedButton label="Add" primary={true} onTouchTap={this.handleSubmit}/>
+  let display=  <Dialog title="AddMembers" actions={actions} modal={false} open={this.state.addOpen} onRequestClose={this.handleClose}>
+  				  <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} hintText="Add" searchText={this.state.searchText}  maxSearchResults={5} onUpdateInput={this.handleUpdateInput} onNewRequest={this.handleNewRequest} dataSource={this.state.membersList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
+               {this.state.addedMembers.map((item,i)=>{
+                 return(<Chip key={i} onRequestDelete={this.handleRequestDelete.bind(this,item)} style={styles.chip}>{item}</Chip>)
+               })}
+  				</Dialog>
 		return(
 			<center style={{height:"100%",width:"100%"}}>
 				<Paper style={{height:"100%",width:"100%",border: 'solid 1px #d9d9d9'}}>
@@ -166,21 +231,21 @@ export default class Chat extends React.Component{
 						<Row style={{ height:'8%',overflow:'hidden',width:"100%",margin:"0px"}}>
 								<Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
 			<Paper zDepth={1}>
-			<RaisedButton onTouchTap={this.handleShowMembers} label="Members" icon={<SupervisorAccount />}/>
-   <Popover open={this.state.membersOpen}
-   			anchorEl={this.state.anchorEl}
+   <IconMenu open={this.state.membersOpen}
+           onTouchTap={this.handleShowMembers}
+   		  iconButtonElement={<IconButton><SupervisorAccount/></IconButton>}
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           targetOrigin={{horizontal: 'left', vertical: 'top'}}
-          onRequestClose={this.handleRequestClose}
-          animation={PopoverAnimationVertical}
+          onRequestChange={this.handleMembersClose}
         >
    {this.state.members.map((item,i)=>{
    		return(<MenuItem key={i} primaryText={item}/>)
    })}
-  </Popover>
-   <IconMenu iconButtonElement={<IconButton tooltip="Add Members"><PersonAdd /></IconButton>} >
+  </IconMenu>
+   <IconMenu iconButtonElement={<IconButton ><PersonAdd onTouchTap={this.handleAddMembers}/></IconButton>} >
   </IconMenu>
       </Paper>
+      	{display}
 					</Col>
 							</Row>
 							<Row style={{ height:'4%',overflow:'hidden',width:"100%"}}>

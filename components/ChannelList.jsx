@@ -15,6 +15,7 @@ import Subheader from 'material-ui/Subheader';
 import { Grid, Row, Col} from 'react-flexbox-grid/lib';
 import Paper from 'material-ui/Paper';
 import AppBar from 'material-ui/AppBar'
+import {RadioButton, RadioButtonGroup} from 'material-ui/RadioButton';
 
 let SelectableList = makeSelectable(List);
 injectTapEventPlugin();
@@ -25,13 +26,14 @@ export default class ChannelList extends React.Component{
   constructor(props){
     super(props);
    // console.log(this.props.currentChannel,"Constructor");
-    this.state={currentProject:"",channels:[],channelName:"",open:false,dOpen:false}
+    this.state={currentProject:"",channels:[],channelName:"",open:false,dOpen:false,type:"public"}
     this.handleAddChannel=this.handleAddChannel.bind(this);
     this.handleClose=this.handleClose.bind(this);
     this.handleNameChange=this.handleNameChange.bind(this);
     this.handleSubmit=this.handleSubmit.bind(this);
     this.handleDrawerOpen=this.handleDrawerOpen.bind(this);
     this.handleProjectChange=this.handleProjectChange.bind(this);
+    this.handleType=this.handleType.bind(this);
    } 
 
    componentDidMount() {
@@ -62,7 +64,7 @@ export default class ChannelList extends React.Component{
   }
 
   handleSubmit(){
-    this.props.socket.emit('newChannel', this.props.userName,this.state.currentProject,this.state.channelName);
+    this.props.socket.emit('newChannel', this.props.userName,this.state.currentProject,this.state.channelName,this.state.type);
     this.setState({open:false,channelName:""})
   }
 
@@ -79,23 +81,20 @@ export default class ChannelList extends React.Component{
 
   }
 
+   handleType(event){
+    this.setState({type:event.target.value});
+  }
+
   render(){
     console.log(this.props.channelList,"Render of ChannelList");
-  //  let twoD = {};
-  //  this.props.channelList.forEach((item,i)=>{
-  //    let splitted = item.split("#");
-  //    if(!twoD.hasOwnProperty(splitted[0])){
-  //     twoD[splitted[0]] = new Array();
-  //     twoD[splitted[0]].push(splitted[1]);
-  //     }
-  //    else{
-  //      twoD[splitted[0]].push(splitted[1]);
-  //     }
-  // });
   const actions = <RaisedButton label="Create" primary={true} onTouchTap={this.handleSubmit}/>
   let display=  <Dialog title="Create Channel" actions={actions} modal={false} open={this.state.open} onRequestClose={this.handleClose}>
   <TextField hintText="Channel Name" floatingLabelText="Channel Name" value={this.state.channelName} onChange={this.handleNameChange}/><br />
-        </Dialog>
+  <RadioButtonGroup name="Types" defaultSelected="public" onChange={this.handleType}>
+  <RadioButton value="public" label="Public"/>
+  <RadioButton value="private" label="Private"/>
+  </RadioButtonGroup>      
+  </Dialog>
   let projects=[];
   this.props.channelList.map((item,i)=>{
     if(projects.indexOf(item.split("#")[0])==-1){

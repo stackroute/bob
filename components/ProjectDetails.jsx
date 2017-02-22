@@ -39,7 +39,8 @@ export default class ProjectDetails extends Component {
            addUsers:[],
            slideIndex:0,
            projectsList:[],
-           projectName1:""
+           projectName1:"",
+           request:""
        }
 
        this.handleProjectChange=this.handleProjectChange.bind(this);
@@ -50,6 +51,7 @@ export default class ProjectDetails extends Component {
        this.handleRequestDelete=this.handleRequestDelete.bind(this);
        this.handleSlideChange=this.handleSlideChange.bind(this);
        this.handleSlideChangeBackward=this.handleSlideChangeBackward.bind(this);
+       this.handleJoin=this.handleJoin.bind(this);
    }
 
    componentDidMount() {
@@ -104,13 +106,16 @@ handleUpdateInput(searchText){
      if(this.state.projectName=="")
        {
            if(this.state.projectName=="")
-           this.setState({projectError:"Please Enter a Project Name"});
+           this.setState({projectError:"Please Enter a Team Name"});
        }
+     else if(this.state.projectsList.indexOf(this.state.projectName)!=-1){
+      this.setState({projectError:"Team already Exists.Try a new name"})
+    }
        else{
     var a=this.state.slideIndex;
     this.setState({slideIndex:a+1});
   }
-   }
+  }
 
    handleSlideChangeBackward(){
     var a=this.state.slideIndex;
@@ -118,9 +123,27 @@ handleUpdateInput(searchText){
    }
 
    handleProjectChange1(e){
-    this.setState({projectName1:e.target.value});
+    //console.log(e);
+    this.setState({projectName1:e});
    }
 
+    handleJoin(){
+    var a=cookie.load("Token");
+         var b=base64.decode(a.split('.')[1]);
+         var userName=utf8.decode(b);
+    console.log(this.state.projectName1);
+    let that=this;
+    request.patch("http://bob.blr.stackroute.in/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
+      if(JSON.parse(reply.text).result==true){
+        that.setState({request:JSON.parse(reply.text).status});
+      }
+      else{
+
+        that.setState({request:JSON.parse(reply.text).status});
+      }
+      
+    })
+   }
    render() {
 
        return (
@@ -156,7 +179,8 @@ handleUpdateInput(searchText){
            </SwipeableViews>
            <h3>Join A Project</h3>
             <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} hintText="Teams" searchText={this.state.projectName1}  maxSearchResults={4} onUpdateInput={this.handleProjectChange1} dataSource={this.state.projectsList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
-            <RaisedButton label="Join" primary={true}/>
+            <RaisedButton label="Join" primary={true} onClick={this.handleJoin}/>
+            <br/><br/>{this.state.request}
            </Paper>
           </Col>
         </Row>
