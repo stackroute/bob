@@ -160,7 +160,7 @@ export default class Chat extends React.Component{
 
 	handleAddMembers(){
 		let a=this.props.channelID.split("#");
-		request.get("http://localhost:8000/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
+		request.get("http://bob.blr.stackrooute.in/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
 			res=JSON.parse(res.text);
 			this.setState({membersList:res.data,addOpen:true});	
 				})
