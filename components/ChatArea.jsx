@@ -17,6 +17,7 @@ import Popover, {PopoverAnimationVertical} from 'material-ui/Popover';
 import request from 'superagent';
 import Dialog from 'material-ui/Dialog';
 import AutoComplete from 'material-ui/AutoComplete';
+import ExitToApp from 'material-ui/svg-icons/action/exit-to-app';
 
 const styles = {
   chip: {
@@ -37,6 +38,7 @@ export default class Chat extends React.Component{
 	    this.handleUpdateInput=this.handleUpdateInput.bind(this);
 	    this.handleNewRequest=this.handleNewRequest.bind(this);
 	    this.handleSubmit=this.handleSubmit.bind(this);
+	    this.handleLeave=this.handleLeave.bind(this);
 	}
 	
 	componentDidMount() {	
@@ -158,7 +160,7 @@ export default class Chat extends React.Component{
 
 	handleAddMembers(){
 		let a=this.props.channelID.split("#");
-		request.get("http://bob.blr.stackroute.in/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
+		request.get("http://localhost:8000/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
 			res=JSON.parse(res.text);
 			this.setState({membersList:res.data,addOpen:true});	
 				})
@@ -198,6 +200,10 @@ export default class Chat extends React.Component{
 		this.setState({addOpen:false});
 	}
 
+	handleLeave(){
+		socket.emit("leaveGroup",this.props.channelID,this.props.userName);
+	}
+
 	render(){
 		console.log(this.state.members,"Inside Chat");
 		let typ;
@@ -224,13 +230,17 @@ export default class Chat extends React.Component{
                  return(<Chip key={i} onRequestDelete={this.handleRequestDelete.bind(this,item)} style={styles.chip}>{item}</Chip>)
                })}
   				</Dialog>
-		return(
+  				let leave=null;
+   if(this.props.channelID.split("#")[1]!="general"){
+  	leave=<IconButton ><ExitToApp onTouchTap={this.handleLeave}/></IconButton>
+  }
+return(
 			<center style={{height:"100%",width:"100%"}}>
 				<Paper style={{height:"100%",width:"100%",border: 'solid 1px #d9d9d9'}}>
 						<Grid  style={{height:'100%', width:"100%"}}>
 						<Row style={{ height:'8%',overflow:'hidden',width:"100%",margin:"0px"}}>
 								<Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
-			<Paper zDepth={1}>
+			<Paper zDepth={0}>
    <IconMenu open={this.state.membersOpen}
            onTouchTap={this.handleShowMembers}
    		  iconButtonElement={<IconButton><SupervisorAccount/></IconButton>}
@@ -242,8 +252,9 @@ export default class Chat extends React.Component{
    		return(<MenuItem key={i} primaryText={item}/>)
    })}
   </IconMenu>
-   <IconMenu iconButtonElement={<IconButton ><PersonAdd onTouchTap={this.handleAddMembers}/></IconButton>} >
+   <IconMenu iconButtonElement={<IconButton onTouchTap={this.handleAddMembers}><PersonAdd /></IconButton>} >
   </IconMenu>
+  {leave}
       </Paper>
       	{display}
 					</Col>

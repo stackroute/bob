@@ -67,6 +67,7 @@ module.exports = function(io, socket) {
             createEvent(oauth2Client, summary, location, sd, ed);
           }
         });
+    }
 
 
 
@@ -142,7 +143,6 @@ module.exports = function(io, socket) {
             }
           });
         }
-      }
 
     function newChannel(username, projectName, channelName,type) {
         //console.log("newChannelEvent parameters : ", username, projectName, channelName);
@@ -153,13 +153,8 @@ module.exports = function(io, socket) {
         ChannelInfo.find({channelName:project},function(err,reply){
           addMembers(username,channel,reply[0].members,type);
            UserInfo.findOne({ username: username }, function(err, reply) {
-                reply.channelList = reply.channelList.filter((item, i) => {
-                if ((item.split('#'))[0] === projectName) {
-                    return item;
-                }
-            });
             socket.emit('updatedChannelList', reply.channelList);
-            })
+        })
         })
 
       }
@@ -181,20 +176,14 @@ module.exports = function(io, socket) {
                 });
             channelinfo.save(function(err,reply){
                 UserInfo.findOne({ username: username }, function(err, reply) {
-                reply.channelList = reply.channelList.filter((item, i) => {
-                if ((item.split('#'))[0] === projectName) {
-                    return item;
-                }
-            });
             socket.emit('updatedChannelList', reply.channelList);
             })
-            })
-        })
       })
-      }
+      })
+        })
        sub.subscribe(channel);
     }
-
+}
     function feedbackManager(obj) {
         let feedback = new Feedback({
             name: obj["name"],
@@ -390,28 +379,38 @@ module.exports = function(io, socket) {
         socket.emit("updateUnread", currentChannel, prevChannel, d);
     });
 
-    socket.on("getProjectName",function(){
+    socket.on("getProjectName",function(userName){
         ChannelInfo.find({},function(err,reply){
-            //console.log(reply);
             var projectList=reply;
-            var projects=[];
             var users=[];
-            //console.log(reply);
+            var projects=[];
+            // var usersProjects=[];
             reply.map(function(item){
                 if(projects.indexOf(item.channelName.split('#')[0])==-1){
                     projects.push(item.channelName.split('#')[0]);
                 }
             })
-            console.log(projects,"List of Projects");
-            UserInfo.find({},function(err,reply){
+            //usersProjects=projects;
+
+            // UserInfo.findOne({username:userName},function(err,res){
+            //    res.channelList.map(function(item){
+            //     if(usersProjects.indexOf(item.split('#')[0])==-1){
+            //         usersProjects.push(item.split('#')[0]);
+            //     }
+            // })
+                 UserInfo.find({},function(err,reply){
                 //console.log("Users",reply);
                 reply.map(function(item){
                     users.push(item.username);
                 })
+                //console.log(projects,"projects",usersProjects,"List of Projects");
                 socket.emit("takeProjectList",projects,users);
             })
+            })
+            
+           
 
-        })
+
     })
 
     function addMembers(userName,projectName,membersList,type){
@@ -515,4 +514,78 @@ module.exports = function(io, socket) {
         })
       })
     })
-}
+
+    socket.on("leaveGroup",function(projectName,userName){
+        //console.log(projectName,userName,"Inside Leave Group");
+        UserInfo.findOne({username:userName},function(err,reply){
+            let a=reply.channelList;
+            let b=a.indexOf(projectName);
+            a.splice(b,1);
+            UserInfo.findOneAndUpdate({username:userName},{$set:{channelList:a}},function(err,reply){
+                ChannelInfo.findOne({channelName:projectName},function(err,res){
+                    let c=res.members;
+                    let d=c.indexOf(userName);
+                    c.splice(d,1);
+                    ChannelInfo.findOneAndUpdate({channelName:projectName},{$set:{members:c}},function(err,reply){
+                              UserInfo.findOne({ username: userName }, function(err, reply) {
+                                //console.log(reply,"Emitting Channel List");
+                              reply.channelList = reply.channelList.filter((item, i) => {
+                              if ((item.split('#'))[0] === projectName.split("#")[0]) {
+                              return item;
+                                 }
+                                });
+                             socket.emit('updatedChannelList', reply.channelList);
+                              });
+                       })
+                   })
+                })
+            })
+        })
+
+    socket.on("JoinTeam",function(userName,projectName){
+        console.log(userName,projectName);
+        UserInfo.findOne({username:userName},function(err,reply){
+        if(reply==null){
+            let a=[];
+            a.push(projectName+"#general");
+            let user=new UserInfo({
+                username:userName,
+                channelList:a,
+                currentChannel:projectName+"#general"
+            });
+            user.save(function(err,reply){
+                let pn = projectName + "#general";
+                let latob = {};
+                latob[pn] = new Date();
+                let lat=new LatList({
+                    username:userName,
+                    lat:latob
+                });
+           lat.save(function(err,reply){
+            ChannelInfo.findOneAndUpdate({channelName:projectName+"#general"},{$push:{members:userName}},function(err,reply){
+                   socket.emit("Joined");
+                    console.log("Saved");
+            })
+        })
+       })
+    }
+       
+        else{
+            UserInfo.findOneAndUpdate({username:userName},{$push:{channelList:projectName+"#general"}},function(err,reply){
+                UserInfo.findOneAndUpdate({username:userName},{$set:{currentChannel:projectName+"#general"}},function(err,reply){
+            let pn = projectName+"#general";
+            let a = "lat." + pn;
+            var obj = {};
+            obj[a] = new Date();
+            LatList.update({ username:userName }, { $set: obj }, function(err, reply) {
+                ChannelInfo.findOneAndUpdate({channelName:projectName+"#general"},{$push:{members:userName}},function(err,reply){
+                    socket.emit("Joined");
+                })
+            })
+            })
+            })
+
+        }
+    })
+    })
+  }

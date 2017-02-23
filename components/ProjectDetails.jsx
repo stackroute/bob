@@ -32,15 +32,14 @@ export default class ProjectDetails extends Component {
        this.state={
            projectName:"",
            projectError:"",
-           socket:io('http://bob.blr.stackroute.in'),
+           socket:io('http://localhost:8000'),
            projectsList:[],
            searchText:"",
            usersList:[],
            addUsers:[],
            slideIndex:0,
-           projectsList:[],
            projectName1:"",
-           request:""
+           projectName1Error:""
        }
 
        this.handleProjectChange=this.handleProjectChange.bind(this);
@@ -55,11 +54,17 @@ export default class ProjectDetails extends Component {
    }
 
    componentDidMount() {
-    this.state.socket.emit("getProjectName");
+    var a=cookie.load("Token");
+         var b=base64.decode(a.split('.')[1]);
+         var userName=utf8.decode(b);
+    this.state.socket.emit("getProjectName",userName);
     let that=this;
     this.state.socket.on("takeProjectList",function(projectsList,usersList){
       console.log(usersList);
       that.setState({projectsList:projectsList,usersList:usersList})
+    })
+    this.state.socket.on("Joined",function(){
+      hashHistory.push("/bob");
     })
    }
 
@@ -104,6 +109,7 @@ handleUpdateInput(searchText){
    }
 
    handleSlideChange(){
+    console.log(this.state.projectsList,"qqqqq");
      if(this.state.projectName=="")
        {
            if(this.state.projectName=="")
@@ -129,24 +135,30 @@ handleUpdateInput(searchText){
    }
 
     handleJoin(){
+      if(this.state.projectName1==""){
+          this.setState({projectName1Error:"Team Name cannot be empty"})
+      }
+      else{
     var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
-    console.log(this.state.projectName1);
-    let that=this;
-    request.patch("http://bob.blr.stackroute.in/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
-      if(JSON.parse(reply.text).result==true){
-        that.setState({request:JSON.parse(reply.text).status});
-      }
-      else{
+         this.state.socket.emit("JoinTeam",userName,this.state.projectName1);
+       }
+    // console.log(this.state.projectName1);
+    // let that=this;
+    // request.patch("http://localhost:8000/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
+    //   if(JSON.parse(reply.text).result==true){
+    //     that.setState({request:JSON.parse(reply.text).status});
+    //   }
+    //   else{
 
-        that.setState({request:JSON.parse(reply.text).status});
-      }
+    //     that.setState({request:JSON.parse(reply.text).status});
+    //   }
       
-    })
+    // })
    }
    render() {
-
+;
        return (
 
            <div style={{height:"100%"}}>
@@ -179,7 +191,7 @@ handleUpdateInput(searchText){
            </div>
            </SwipeableViews>
            <h3>Join A Project</h3>
-            <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} hintText="Teams" searchText={this.state.projectName1}  maxSearchResults={4} onUpdateInput={this.handleProjectChange1} dataSource={this.state.projectsList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
+            <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} errorText={this.state.projectName1Error} hintText="Teams" searchText={this.state.projectName1}  maxSearchResults={4} onUpdateInput={this.handleProjectChange1} dataSource={this.state.projectsList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
             <RaisedButton label="Join" primary={true} onClick={this.handleJoin}/>
             <br/><br/>{this.state.request}
            </Paper>
