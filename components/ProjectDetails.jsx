@@ -32,7 +32,7 @@ export default class ProjectDetails extends Component {
        this.state={
            projectName:"",
            projectError:"",
-           socket:io('http://localhost:8000'),
+           socket:io('http://bob.blr.stackroute.in'),
            projectsList:[],
            searchText:"",
            usersList:[],
@@ -146,7 +146,7 @@ handleUpdateInput(searchText){
        }
     // console.log(this.state.projectName1);
     // let that=this;
-    // request.patch("http://localhost:8000/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
+    // request.patch("http://bob.blr.stackroute.in/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
     //   if(JSON.parse(reply.text).result==true){
     //     that.setState({request:JSON.parse(reply.text).status});
     //   }

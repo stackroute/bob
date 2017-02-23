@@ -51,7 +51,7 @@ export default class Tile extends React.Component{
 	componentWillMount(){  //get the initial set of messages from server.
 		let that = this;
 		request
-			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
+			.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
             .end(function(err,res){
                 console.log("this is response from server\n\n ",res,"\n\n");
                 let parsed_res = JSON.parse(res.text);
@@ -64,7 +64,7 @@ export default class Tile extends React.Component{
 	componentDidMount(){ //after mounting, get the tile info for this tile
 		let that = this;
 		request
-			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -106,7 +106,7 @@ export default class Tile extends React.Component{
 	handleEdit(){ //get data for configuring tile and opne tile
 		let that = this;
 		request
-			.get('http://localhost:8000/user/'+this.props.userId+'/channels') //get the channles user is part of
+			.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/channels') //get the channles user is part of
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -127,7 +127,7 @@ export default class Tile extends React.Component{
 			});
 
 		request
-			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId) //get the tileconfig data
+			.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId) //get the tileconfig data
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -277,7 +277,7 @@ export default class Tile extends React.Component{
 
 	handleSave(){  //save the selected filters to server.
 		request
-			.patch('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.patch('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.send(this.state.filters)
 			.end(function(err,res){
 					console.log("result of save ",res.text);
@@ -292,7 +292,7 @@ export default class Tile extends React.Component{
 	handleClear(){  //clear the tile notifications.
 		this.setState({msgList:[]});
 		request
-			.patch('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.patch('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.send({lastCleared:new Date()})
 			.end(function(err,res){
 					console.log("result of save ",res.text);
