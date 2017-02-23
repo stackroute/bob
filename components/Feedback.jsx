@@ -23,7 +23,7 @@ export default class Feedback extends Component {
 
  componentDidMount() {
 
-   this.setState({socket:io('http://localhost:8000')})
+   this.setState({socket:io('http://bob.blr.stackroute.in')})
 
  }
 
