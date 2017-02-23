@@ -3,6 +3,7 @@ import ChannelList from './ChannelList.jsx';
 import async from 'async';
 import {List, ListItem,makeSelectable} from 'material-ui/List';
 import ChatArea from './ChatArea.jsx';
+import ProjectsList from './ProjectsList.jsx';
 import io from 'socket.io-client';
 import Header from './Header.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
@@ -118,10 +119,13 @@ export default class Bob extends React.Component{
           chatArea=(
           <Grid  style={{height:"89vh",width:"100%"}}>
             <Row style={{height:"100%",width:"100%"}}>
-              <Col xs={12} sm={3} md={3} lg={3} style={{height:"100%"}}>
+            <Col xs={2} sm={2} md={1} lg={1} style={{height:"100%"}}>
+            <ProjectsList projects={this.state.channelsList}/>
+            </Col>
+              <Col xs={2} sm={1} md={2} lg={2} style={{height:"100%"}}>
                <ChannelList socket={this.state.socket} userName={this.state.userName} channelList={this.state.channelsList} currentChannel={this.state.currentChannel} unreadCount={this.state.unreadCount} setCurrentChannel={this.toggleCurrentChannel}/>
               </Col>
-              <Col xs={12} sm={9} md={9} lg={9} style={{height:"100%"}}>
+              <Col xs={8} sm={9} md={9} lg={9} style={{height:"100%"}}>
              <ChatArea channelID={this.state.currentChannel} socket={this.state.socket} LiveUnreadCount={this.handleLiveUnreadCount.bind(this)} userName={this.state.userName}/>
               </Col>
             </Row>
