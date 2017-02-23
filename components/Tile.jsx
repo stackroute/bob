@@ -1,44 +1,36 @@
-import React from 'react';
-import {Card,CardHeader,CardText} from 'material-ui/Card';
+import {Card,CardHeader,CardText,CardMedia} from 'material-ui/Card';
+import AutoComplete from 'material-ui/AutoComplete';
+import Badge from 'material-ui/Badge';
+import CircularProgress from 'material-ui/CircularProgress';
 import Chip from 'material-ui/Chip';
+import Dialog from 'material-ui/Dialog';
+import FloatingActionButton from 'material-ui/FloatingActionButton';
+import IconButton from 'material-ui/IconButton';
+import RaisedButton from 'material-ui/RaisedButton';
+import React from 'react';
+import TextField from 'material-ui/TextField';
+
+import ClearAll from 'material-ui/svg-icons/communication/clear-all'
+import ContentAdd from 'material-ui/svg-icons/content/add';
+import DeleteIcon from 'material-ui/svg-icons/action/delete-forever';
+import NotificationsIcon from 'material-ui/svg-icons/social/notifications';
+import SettingsIcon from 'material-ui/svg-icons/action/settings';
+import ViewStream from 'material-ui/svg-icons/action/view-stream';
+
+import {autoPlay} from 'react-swipeable-views-utils';
+import CurrentFilter from './Currentfilter.jsx';
 import request from 'superagent';
 import SwipeableViews from 'react-swipeable-views';
-import {autoPlay} from 'react-swipeable-views-utils';
-import SettingsIcon from 'material-ui/svg-icons/action/settings';
-import IconButton from 'material-ui/IconButton';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import ContentAdd from 'material-ui/svg-icons/content/add';
-import CircularProgress from 'material-ui/CircularProgress';
-import Dialog from 'material-ui/Dialog';
-import AutoComplete from 'material-ui/AutoComplete';
-import RaisedButton from 'material-ui/RaisedButton';
-import TextField from 'material-ui/TextField';
-import CurrentFilter from './Currentfilter.jsx';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import {cyan500,cyan50,indigo700,grey900,grey600,white,red,fullBlack, cyan700,
-  pinkA200,grey100, grey300, grey400, grey500, darkBlack,grey50} from 'material-ui/styles/colors';
-  import getMuiTheme from 'material-ui/styles/getMuiTheme';
-  import {fade} from 'material-ui/utils/colorManipulator';
-
-const muiTheme = getMuiTheme({
-card: {
-	titleColor:'white',
-  subtitleColor:'grey50',
-
-}
-});
-
-
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
+
 export default class Tile extends React.Component{
-
+	
 	constructor(props){
-		super(props);
-
+		super(props);		
 		this.state={
 			msgList:[],
-			open:false,
+			dialogOpen:false,
 			channels:[],
 			projects:[],
 			filters:{},
@@ -51,11 +43,12 @@ export default class Tile extends React.Component{
 				projectInput:"",
 				channelInput:"",
 				tagInput:""
-			}
+			},
+			stop:false,
 		}
 	}
 
-	componentWillMount(){
+	componentWillMount(){  //get the initial set of messages from server.
 		let that = this;
 		request
 			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId+"/Messages")
@@ -68,7 +61,7 @@ export default class Tile extends React.Component{
             });
 	}
 
-	componentDidMount(){
+	componentDidMount(){ //after mounting, get the tile info for this tile
 		let that = this;
 		request
 			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
@@ -83,13 +76,37 @@ export default class Tile extends React.Component{
 					});
 				}
 			});
-
+			console.log(this.props);
+			this.props.psocket.on('takeMessage',(channelID,msg)=>{ //Sent from socket server when a message is published in the redis channel.
+				console.log("this is inside handler");
+			this.handleTakeMessage(channelID,msg);
+		});
+	    
 	}
 
-	handleEdit(){
+	handleTakeMessage(channelId,msg){  //handle an incoming message from redis channel
+		console.log("channel name: ",channelId,"message: ",msg);
+		if(this.state.filters.channels.includes(channelId)){
+			if(msg.hasOwnProperty('typer')||msg.sender===this.props.userId){
+				
+			}
+			else 
+			{
+				msg = this.handleTime(msg);
+				msg.channelId = channelId;	
+				this.setState((prevState,props)=>{ 
+						prevState.msgList.push(msg); 
+						return {msgList:prevState.msgList};
+				});
+			}
+		}
+		
+	}
+
+	handleEdit(){ //get data for configuring tile and opne tile
 		let that = this;
 		request
-			.get('http://localhost:8000/user/'+this.props.userId+'/channels')
+			.get('http://localhost:8000/user/'+this.props.userId+'/channels') //get the channles user is part of
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -104,13 +121,13 @@ export default class Tile extends React.Component{
 					});
 					console.log("channels: ",reply.data+" projects: ",projects);
 					that.setState({
-						channels:reply.data,projects:projects
+						channels:reply.data,projects:projects   //keep project names in project and channels in channel.
 					});
 				}
 			});
 
 		request
-			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.get('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId) //get the tileconfig data
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -123,20 +140,20 @@ export default class Tile extends React.Component{
 				}
 			});
 		console.log("clicked settings button");
-		this.setState({open:true});
+		this.setState({dialogOpen:true});
 	}
 
-	handleClose(){
-		this.setState({open:false,pOkay:false,cOkay:false,Okay:false});
+	handleClose(){  //closing the configure tile dialog
+		this.setState({dialogOpen:false,pOkay:false,cOkay:false,Okay:false});
 	}
 
-	handleRequestDelete(category,filter){
+	handleRequestDelete(category,filter){ //delete the filter parameters
   		if(category === "tags"){
      		this.setState((prevState,props)=>{
 	    		let index = prevState.filters.tags.indexOf(filter);
  			   	if(index>-1)
-        			prevState.filters.tags.splice(index,1);
-       			return {filters:prevState.filters};
+        			prevState.filters.tags.splice(index,1); 
+       			return {filters:prevState.filters};     
      		});
    		}
    		else if(category === "channel"){
@@ -152,19 +169,19 @@ export default class Tile extends React.Component{
    		}
  	}
 
-	computeChannels(){
+	computeChannels(){ //compute the channels for the selected project in configure tile.
 		console.log("happeining");
 		let data=[];
 		data = this.state.channels.filter((item,index)=>{
 			return item.split('#')[0]===this.state.filterInputs.projectInput;
 		});
 		data = data.map((item,index)=>{
-			return '#'+item.split('#')[1];
+			return '#'+item.split('#')[1]; 
 		});
 		this.setState({filteredChannels:data});
 	}
 
-	handleTagInput(event){
+	handleTagInput(event){  //handle the data from tag input field
 		event.persist();
 		let data = event.target.value;
 		let status;
@@ -182,9 +199,9 @@ export default class Tile extends React.Component{
 		});
 	}
 
-	handleProjectInput(value){
+	handleProjectInput(value){ //handle project input field. set bools for validation
 		console.log("project");
-		let status;
+		let status;	
 		if(this.state.projects.includes(value))
 			status = true;
 		else
@@ -200,8 +217,8 @@ export default class Tile extends React.Component{
 				return {Okay:false};
 		});
 	}
-
-	handleChannelInput(value){
+		
+	handleChannelInput(value){  //handle channel input field. set bools for validation.
 		console.log("channel");
 		let status;
 		if(this.state.filters.channels.includes(this.state.filterInputs.projectInput+value))
@@ -220,7 +237,7 @@ export default class Tile extends React.Component{
 		});
 	}
 
-	handleAdd(){
+	handleAdd(){    //add the filter selected and reset the input fields and but dont close dialog.
 		this.setState((prevState,props)=>{
 			let channel = prevState.filterInputs.projectInput+prevState.filterInputs.channelInput;
 			prevState.filters.channels.push(channel);
@@ -241,24 +258,59 @@ export default class Tile extends React.Component{
 		});
 	}
 
-	handleSave(){
+	handleTime(msg){
+		let date=[];
+         date[0]= new Date(msg.TimeStamp).getHours();
+         date[1]= new Date(msg.TimeStamp).getMinutes();
+         if(date[0]>12){
+             date[2] = "PM";
+             date[0] = date[0] -12;
+         }
+         else{
+             date[2] = "AM";
+         }
+         date = date[0]+":"+date[1]+" "+date[2];
+	//console.log(new Date().getHours(),date,"=======================");
+         msg.TimeStamp = date;
+        return msg;
+    }
+
+	handleSave(){  //save the selected filters to server.
 		request
 			.patch('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
 			.send(this.state.filters)
 			.end(function(err,res){
 					console.log("result of save ",res.text);
-
+					
 			});
 		this.handleClose.bind(this)();
 	}
 
-	render(){
-		console.log("pokay: ",this.state.pOkay,"cokay: ",this.state.cOkay,"okay: ",
-			this.state.Okay,"this.state.projects: ",this.state.projects,"filters ",this.state.filters," whole ",this.state);
+	
 
-		let dialog= (<Dialog open={this.state.open} onRequestClose={this.handleClose.bind(this)}
+
+	handleClear(){  //clear the tile notifications.
+		this.setState({msgList:[]});
+		request
+			.patch('http://localhost:8000/user/'+this.props.userId+'/Tiles/'+this.props.tileId)
+			.send({lastCleared:new Date()})
+			.end(function(err,res){
+					console.log("result of save ",res.text);
+					
+			});
+	}
+
+	handleViewAllWrapper(){		
+		this.props.handleViewAll(this.state.msgList);
+	}
+
+	render(){
+
+
+		//below dialog is the configuration tile dialog.
+		let dialog= (<div><Dialog open={this.state.dialogOpen} onRequestClose={this.handleClose.bind(this)}
 						title="Change Tile Settings"
-					>
+					>			
 						<AutoComplete hintText="Enter the project" onUpdateInput={this.handleProjectInput.bind(this)}
 							value ={this.state.filterInputs.projectInput} errorText="Enter a project that you are part of."
 							onBlur={this.computeChannels.bind(this)} dataSource={this.state.projects}
@@ -273,55 +325,96 @@ export default class Tile extends React.Component{
 						<RaisedButton disabled= {!this.state.Okay} label="ADD" primary={true}
 							onClick={this.handleAdd.bind(this)}
 						/>
-						<RaisedButton  label="SAVE" primary={true}
+						<RaisedButton  label="SAVE" primary={true} 
 							onClick={this.handleSave.bind(this)}
 						/>
 						<CurrentFilter filters={this.state.filters}
   							handleRequestDelete={this.handleRequestDelete.bind(this)}
   						/>
 					</Dialog>
+					</div>
 					);
+
+		let notification_badge; //the notification icon with badge.
+
+		if(this.state.msgList.length>0)
+		    notification_badge= (<div><Badge
+		               				badgeContent={this.state.msgList.length}
+		               				primary={true}
+		               			>
+		               				<NotificationsIcon />
+		               			</Badge>
+		               			</div>
+		               			);
+		else
+		    notification_badge = (
+		               				null
+		               			);
+
+		let pop;   //this is onmouseenter to show icons on tiles.
+		if(this.state.stop)
+			pop = (<div>
+						<IconButton tooltip="Settings"  onClick={this.handleEdit.bind(this)} >
+		                    	<SettingsIcon  />
+		                    </IconButton> 
+		                    <IconButton tooltip="Delete Forever" onClick={this.props.handleDelete}>
+		                		<DeleteIcon />
+		               		</IconButton>
+		               		   <IconButton tooltip="Clear Notifications" onClick={this.handleClear.bind(this)}>
+		                		<ClearAll />
+		               		</IconButton>
+		               		<IconButton tooltip="View all" onClick={this.handleViewAllWrapper.bind(this)}>
+		                		<ViewStream />
+		               		</IconButton>
+		               		{notification_badge}
+		           </div>
+			);
+		else
+			pop = null;
+
 		if(this.state.msgList.length===0){
-			return (<div>
-						{dialog}
-							<Card>
-		            	<CardHeader style={{ backgroundColor: '#F57C00'}}>
-		                    <IconButton  onClick={this.handleEdit.bind(this)} ><SettingsIcon  /></IconButton>
-		                </CardHeader>
-		                <CardText style={{ backgroundColor: '#FFF3E0'}}>
-		                	"No Notifications to Display"
-		                </CardText>
-									</Card>
+			return (<div onMouseEnter={()=>{this.setState({stop:true});}} 
+						onMouseLeave={()=>{this.setState({stop:false});}}>
+						{dialog}						
+						<Card >						
+		                	<CardText >
+		                		"No Notifications to Display"
+		                	</CardText>
+		                 	<CardMedia overlay={pop} >
+		                 	</CardMedia>
+		                </Card>
 		            </div>);
 		}
 		else{
-			return (<MuiThemeProvider muiTheme={muiTheme}><div>
+			return (<div >	
 						{dialog}
-						<AutoPlaySwipeableViews>
-	                            {
-	                                this.state.msgList.map((details, i) => {
-	                                    return (
-	                                            <div key={i}>
-																								<Card style={{backgroundColor: '#E8EAF6',height:'100%'}}>
-	                                                <CardHeader style={{ backgroundColor: '#F57C00'}} title={details.channelId.split("#")[0]+"/"
-	                                                    +details.channelId.split("#")[1]+"/"
-	                                                    +details.sender}  subtitle = {details.TimeStamp}
-	                                                >
-	                                                    <IconButton onClick={this.handleEdit.bind(this)} >
-	                                                        <SettingsIcon />
-	                                                    </IconButton>
-	                                                </CardHeader>
-	                                                <CardText style={{ backgroundColor: '#FFF3E0'}}>
-	                                                    {details.msg}
-	                                                </CardText>
-																								</Card>
-	                                            </div>)
-	                                    }
-	                                )
-	                            }
-	                        </AutoPlaySwipeableViews>
-			            </div></MuiThemeProvider>);
+						<AutoPlaySwipeableViews autoplay={!this.state.stop}
+						 onMouseEnter={()=>{this.setState({stop:true});}}
+						 onMouseLeave={()=>{this.setState({stop:false});}}>
+		                {
+		                	this.state.msgList.map((details, i) => {
+		                		return (
+		                			    <div key={i}>
+		                			    <Card >
+		               				   
+		               				        <CardHeader title={details.channelId.split("#")[0]+"/"
+		               				        	+details.channelId.split("#")[1]+"/"
+		               					        +details.sender}  subtitle = {details.TimeStamp}
+		               					    >  
+		               				        </CardHeader>
+		               				        <CardText>
+		               				        	{details.msg}
+		               				        </CardText>
+		               				        <CardMedia overlay={pop} >
+		               				        </CardMedia>
+		                				</Card>
+		                				</div>);
+		                	})
+		                }
+		                </AutoPlaySwipeableViews>
+		            </div>
+		    );
 		}
-	}
-
+	}	
+		
 }

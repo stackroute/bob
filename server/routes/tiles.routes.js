@@ -206,15 +206,20 @@ router.get('/user/:userId/Tiles/:tileId/Messages', function(req, res) {
                             reply = reply.map((element, index) => {
                                 element = JSON.parse(element);
                                 element.channelId = channel;
-                                element = handleTime(element);
                                 return element;
                             });
                             reply = reply.filter((item, ind) => {
-                                if (item.sender === userId)
+                                if (item.sender === userId || Date.parse(item.TimeStamp) < Date.parse(tile_info.lastCleared))
                                     return false;
                                 else
                                     return true;
                             });
+                            
+                            reply = reply.map((element, index) => {
+                                element = handleTime(element);
+                                return element;
+                            });
+
 
                             messages = messages.concat(reply);
                         }
@@ -250,6 +255,7 @@ router.delete('/user/:userId/Tiles/:tileId', function(req, res) { //delete the t
     Tiles.findByIdAndRemove(tileId, function(err, tile) { //delete the tile in mongodb
         if (err) {
             console.log("error in deleting tile: ", tileId);
+            return res.send({result:false,status:"could not delete"});
         } else {
             client.lrange("#Layout#" + userId, 0, -1, function(err, reply) { //get the layout of user from redis
 
@@ -272,6 +278,7 @@ router.delete('/user/:userId/Tiles/:tileId', function(req, res) { //delete the t
                 reply = reply.map((item) => {
                     return JSON.stringify(item);
                 });
+                console.log(reply,"this is to save as new tile");
 
                 client.del("#Layout#" + userId, function(err, integ) { //delete the current list and push a new one
                     client.lpush("#Layout#" + userId, reply);
@@ -367,13 +374,15 @@ router.post('/user/:userId/Layout', function(req, res) {
 
     let ob = {
 
-        "w": 4,
-        "h": 4,
+        "w": 2,
+        "h": 2,
         "x": 0,
         "y": 0,
         "i": "add_tile",
         "moved": false,
-        "static": false
+        "static": true,
+        "isDraggable":false,
+        "isResizable":false
 
     }
     client.lrange("#Layout#" + userId, 0, -1, function(err, reply) {
@@ -455,6 +464,10 @@ router.patch('/user/:userId/Tiles/:tileId',function(req,res){
             return res.send({result:false,status:"Tile with tileId: "+tileId+" not found"});
         Object.keys(body).forEach((key,i)=>{
             tile[key] = body[key];
+
+            if(key=="lastCleared")
+                tile[key] = new Date();
+
         });
         tile.save(function(err, tile) {
             return res.send(tile);

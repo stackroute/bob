@@ -13,6 +13,7 @@ import Dialog from 'material-ui/Dialog';
 import {List, ListItem} from 'material-ui/List';
 import RaisedButton from 'material-ui/RaisedButton';
 import ContentInbox from 'material-ui/svg-icons/content/inbox';
+
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
