@@ -4,6 +4,15 @@ import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import FlatButton from 'material-ui/FlatButton';
 import Paper from 'material-ui/Paper';
 import ReactDOM from 'react-dom';
+import Checkbox from 'material-ui/Checkbox';
+import ActionFavorite from 'material-ui/svg-icons/action/favorite';
+import ActionFavoriteBorder from 'material-ui/svg-icons/action/favorite-border';
+import Bookmark from 'material-ui/svg-icons/action/bookmark';
+import IconButton from 'material-ui/IconButton';
+import Dialog from 'material-ui/Dialog';
+import {List, ListItem} from 'material-ui/List';
+import RaisedButton from 'material-ui/RaisedButton';
+import ContentInbox from 'material-ui/svg-icons/content/inbox';
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
@@ -19,7 +28,9 @@ const cardtext={
 export default class ChatHistory extends Component {
 	constructor(props){
 		super(props);
-		this.state={historyEnded:false};
+		this.state={historyEnded:false,
+		bookitem:'',
+					checkStatus:false};
 	}
 
 
@@ -32,6 +43,10 @@ scrollToBottom() {
 
 	componentDidMount(){
 		this.scrollToBottom();
+
+		this.props.psocket.on("receiveBoomarkHistory",(receiveBoomarkHistory)=>{
+				this.setState({booklist:receiveBoomarkHistory});
+			});
 		this.props.psocket.on('historyEmpty',(msg)=>{
 				this.handleHistoryEmpty(msg);
 			});
@@ -63,6 +78,7 @@ scrollToBottom() {
 		//console.log(this.props.chatHistory);
 
 		let lem;
+		let showbooklist;
 		if(this.state.historyEnded)
 			lem = null;
 		else
@@ -73,11 +89,15 @@ scrollToBottom() {
 			return (<Row key={i} end="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:'2vh',marginBottom:'2vh',maxWidth:'80%'}}><Card >
 			<CardTitle style={cardtitle} title={message.sender} subtitle={message.TimeStamp}  />
 			<CardText style={cardtext}>{message.msg}</CardText>
+			<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+      uncheckedIcon={<ActionFavoriteBorder />}/>
 		</Card></Col></Row>);
 		else
 		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:'2vh',marginBottom:'2vh',maxWidth:'80%'}}><Card >
 		<CardTitle style={cardtitle} title={message.sender} subtitle={message.TimeStamp}  />
 		<CardText style={cardtext}>{message.msg}</CardText>
+			<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+      uncheckedIcon={<ActionFavoriteBorder />}/>
 	</Card></Col></Row>);
 });
 return (

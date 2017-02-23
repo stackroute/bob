@@ -17,6 +17,11 @@ import Popover, {PopoverAnimationVertical} from 'material-ui/Popover';
 import request from 'superagent';
 import Dialog from 'material-ui/Dialog';
 import AutoComplete from 'material-ui/AutoComplete';
+import Clear from 'material-ui/svg-icons/content/clear';
+import Drawer from 'material-ui/Drawer';
+import AppBar from 'material-ui/AppBar';
+import {List, ListItem} from 'material-ui/List';
+import Favorite from 'material-ui/svg-icons/action/favorite';
 
 const styles = {
   chip: {
@@ -28,7 +33,7 @@ let socket;
 export default class Chat extends React.Component{
 	constructor(props) {
 		super(props);
-		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:"",searchText:"",members:[],addedMembers:[],addOpen:false,membersOpen:false,membersList:[]};
+		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:"",searchText:"",members:[],openDrawer:false,booklist:[],addedMembers:[],addOpen:false,membersOpen:false,membersList:[]};
 		socket=this.props.socket;
 		this.handleShowMembers=this.handleShowMembers.bind(this);
 		this.handleMembersClose=this.handleMembersClose.bind(this);
@@ -37,6 +42,7 @@ export default class Chat extends React.Component{
 	    this.handleUpdateInput=this.handleUpdateInput.bind(this);
 	    this.handleNewRequest=this.handleNewRequest.bind(this);
 	    this.handleSubmit=this.handleSubmit.bind(this);
+	    this.handleSelect=this.handleSelect.bind(this);
 	}
 	
 	componentDidMount() {	
@@ -62,6 +68,16 @@ export default class Chat extends React.Component{
 		socket.on("takeMembersList",(membersList)=>{
 			this.setState({members:membersList,membersOpen:true});
 		})
+
+    socket.on("receiveBoomarkHistory",(receiveBoomarkHistory)=>{
+			let a=this.props.channelID;
+			console.log(receiveBoomarkHistory[0].bookmark);
+			//console.log("Received BookMark History",receiveBoomarkHistory[0].bookmark[this.props.channelID][0]);
+			this.setState({booklist:receiveBoomarkHistory[0].bookmark});
+		});
+
+		socket.emit('bookmarkHistory',this.props.userName,this.props.channelID);
+
 		
 	}
 
@@ -131,6 +147,7 @@ export default class Chat extends React.Component{
          msg.TimeStamp = date;
         return msg;
     }
+      handleToggle(){this.setState({openDrawer: !this.state.openDrawer});};
 	handleTyping(name){
 		if(!this.state.typing.includes(name))
 		{
@@ -197,6 +214,32 @@ export default class Chat extends React.Component{
 		socket.emit("addMembers",this.props.channelID,this.state.addedMembers);
 		this.setState({addOpen:false});
 	}
+	handleSelect(book,event,status)
+  {
+ 		 //this.setState({bookitem:event.target.value});
+
+ 			 console.log(book,"=======",status);
+ 		 if(status)
+ 			 {
+ 		 console.log("Boooooooooooooooook Iiiiiiiiiiiiiitem     ",this.state.booklist);
+ 		 this.state.booklist.push(book);
+ 		 socket.emit('saveBookmarks',book,this.props.userName,this.props.channelID,);
+ 		 console.log(this.state.booklist);
+
+ 			 }
+ 			 else
+ 			 {
+ 				 var indexno=this.state.booklist.indexOf(book);
+ 				 console.log("false parttt", indexno);
+ 				 this.state.booklist.splice(indexno,1);
+ 				 socket.emit('deleteBookmarks',book,this.props.userName,this.props.channelID);
+ 				 console.log(this.state.booklist);
+
+ 			 }
+ 			//socket.emit('bookmarks',this.state.booklist);
+
+ 	 }
+
 
 	render(){
 		console.log(this.state.members,"Inside Chat");
@@ -244,7 +287,23 @@ export default class Chat extends React.Component{
   </IconMenu>
    <IconMenu iconButtonElement={<IconButton ><PersonAdd onTouchTap={this.handleAddMembers}/></IconButton>} >
   </IconMenu>
+  <RaisedButton
+
+		label="Bookmarks"
+		 icon={<Favorite />}
+
+		onTouchTap={this.handleToggle.bind(this)}
+	/>
       </Paper>
+      <Drawer width={400} openSecondary={true} open={this.state.openDrawer} >
+			 <AppBar style={{background:"#3F51B5"}} title="Bookmarks"><IconButton iconStyle={{color:"white"}} onTouchTap={this.handleToggle.bind(this)}><Clear/> </IconButton></AppBar>
+				 <List>
+		 {this.state.booklist.map((item,i)=>{
+			 return(<ListItem key={i}><Paper>{item.TimeStamp}<br/>{item.msg}<br/>{item.sender}</Paper></ListItem>)
+		 })
+		 }
+	 </List>
+			 </Drawer>
       	{display}
 					</Col>
 							</Row>
@@ -255,7 +314,7 @@ export default class Chat extends React.Component{
 							</Row>
 							<Row style={{height:'78%',overflowY:'auto',width:"100%"}}>
 								<Col xs={12} sm={12} md={12} lg={12}>
-									<ChatHistory channelId={this.props.channelID} psocket={socket} next={this.state.next} username={this.props.userName} chatHistory={this.state.chatHistory}/>
+									<ChatHistory channelId={this.props.channelID} psocket={socket} bookmark={this.handleSelect} next={this.state.next} username={this.props.userName} chatHistory={this.state.chatHistory}/>
 								</Col>
 							</Row>
 							<Row bottom="lg" style={{height:"10%",width:'100%'}}>

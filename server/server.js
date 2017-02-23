@@ -29,7 +29,7 @@ let google = require('googleapis')
   , OAuth2Google = google.auth.OAuth2
   , clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com'
   , clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr'
-  , redirect = 'http://bob.blr.stackroute.in/oauth2callback'
+  , redirect = 'http://localhost:8000/oauth2callback'
   , oauth2Client = new OAuth2Google(clientId, clientSecret, redirect)
   , GoogleAToken = require('./model/googleatoken.schema.js');
 
@@ -86,7 +86,7 @@ app.get('/dashboard', function(req, res) {
             console.log(token);
             UserInfo.find({ username: payload }).exec((err, reply) => {
                 if (reply.length === 0) {
-                    request.post('http://bob.blr.stackroute.in/user/' + payload + "/Layout")
+                    request.post('http://localhost:8000/user/' + payload + "/Layout")
                         .end(function(err, res) {
 
                             if (JSON.parse(res.text).result)
@@ -94,10 +94,10 @@ app.get('/dashboard', function(req, res) {
                             else
                                 console.log("user already present in redis layout");
                         });
-                    res.redirect("http://bob.blr.stackroute.in/#/project");
+                    res.redirect("http://localhost:8000/#/project");
                 } else {
                     var currentChannel = reply[0].currentChannel;
-                    res.redirect("http://bob.blr.stackroute.in/#/bob");
+                    res.redirect("http://localhost:8000/#/bob");
                 }
             })
 
@@ -205,7 +205,7 @@ app.get('/oauth2callback', function(req, res) {
     storeToken(obj.username, gtoken);
     gfunction(oauth2Client, obj.username, obj.summary, obj.location, obj.startDate, obj.endDate);
   });
-    res.redirect('http://bob.blr.stackroute.in/#/bob');
+    res.redirect('http://localhost:8000/#/bob');
 });
 
 //function to storeToken in DB ---------->
