@@ -32,7 +32,7 @@ export default class ProjectDetails extends Component {
        this.state={
            projectName:"",
            projectError:"",
-           socket:io('http://localhost:8000'),
+           socket:io('http://bob.blr.stackroute.in'),
            projectsList:[],
            searchText:"",
            usersList:[],
