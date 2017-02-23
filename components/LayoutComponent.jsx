@@ -80,7 +80,6 @@ export default class LayoutComponent extends Component {
                    else
                     console.log("An error in server saving layout");
                 });
-
         
   }
   componentWillMount(){
@@ -107,7 +106,6 @@ export default class LayoutComponent extends Component {
                 .end(function(err,res){
                    console.log("this is response from server on adding tile\n\n\n\n ",res,"\n\n\n\n");
                    if(JSON.parse(res.text).result){
-                      
                         request.get('http://bob.blr.stackroute.in/user/'+that.state.userId+'/Layout')
                             .end(function(err,res){
                                 console.log("this is response from server on getting layout\n\n\n\n ",res,"\n\n\n\n");

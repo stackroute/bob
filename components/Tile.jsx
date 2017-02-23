@@ -106,7 +106,9 @@ export default class Tile extends React.Component{
 	handleEdit(){ //get data for configuring tile and opne tile
 		let that = this;
 		request
+
 			.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/channels') //get the channles user is part of
+
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
 				if(!reply.result)
@@ -127,6 +129,7 @@ export default class Tile extends React.Component{
 			});
 
 		request
+
 			.get('http://bob.blr.stackroute.in/user/'+this.props.userId+'/Tiles/'+this.props.tileId) //get the tileconfig data
 			.end(function(err,reply){
 				reply = JSON.parse(reply.text);
