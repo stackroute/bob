@@ -10,6 +10,7 @@ let LatList = require('./../model/lat.schema.js'),
     Feedback = require('./../model/feedback.schema.js');
 const ChannelInfo = require('./../model/channelinfo.schema.js');
 let GoogleAToken = require('./../model/googleatoken.schema.js');
+let bookmarkData=require('./../model/bookmarkSchema.js');
 let unreadCount = {};
 let currentChannelName = "";
 let currentUser = "";
@@ -45,6 +46,65 @@ module.exports = function(io, socket) {
     socket.on('feedback', feedbackManager);
     socket.on('newChannel', newChannel);
     socket.on('remainderAccepted', tokenSearch);
+    socket.on('saveBookmarks',saveBookmarks);
+    socket.on('deleteBookmarks',deleteBookmarks);
+
+    function deleteBookmarks(booklist,userName,channelID)
+    {
+      console.log(booklist);
+      let a={
+      channelid:channelID,
+      sender:booklist.sender,
+      timestamp:booklist.TimeStamp,
+      msg:booklist.msg
+      };
+      bookmarkData.update({userName:userName},{$pull:{bookmark:a}},function(err,reply){
+        console.log("deleted");
+      })
+    }
+
+    function saveBookmarks(booklist,userName,channelID)
+    {
+        bookmarkData.findOne({userName:userName},function(err,reply){
+          console.log("reply",reply,booklist);
+          if(reply==null){
+            let a={
+            channelid:channelID,
+            sender:booklist.sender,
+            timestamp:booklist.TimeStamp,
+            msg:booklist.msg
+            };
+           let bm=new bookmarkData({
+                    userName:userName,
+                    bookmark:a
+           });
+           bm.save(function(err,rply)
+           {
+            if(err)
+            {
+                console.log("error in saving bookmark");
+            }
+            else
+            {
+                console.log("Successfully data saved in bookmark");
+            }
+              socket.emit("receiveBoomarkHistory",rply);
+           })
+         }
+         else{
+           let a={
+           channelid:channelID,
+           sender:booklist.sender,
+           timestamp:booklist.TimeStamp,
+           msg:booklist.msg
+           };
+           bookmarkData.update({userName:userName},{$push:{bookmark:a}},function(err,reply){
+             console.log("Updated");
+           })
+         }
+        });
+    }
+
 
     function tokenSearch(username, summary, location, sd, ed){
       GoogleAToken.findOne({username: username}, function(err, reply){
