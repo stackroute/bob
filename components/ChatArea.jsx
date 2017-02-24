@@ -319,7 +319,7 @@ return(
 							</Row>
 							<Row style={{height:'78%',overflowY:'auto',width:"100%"}}>
 								<Col xs={12} sm={12} md={12} lg={12}>
-									<ChatHistory channelId={this.props.channelID} psocket={socket} next={this.state.next} bookmark={this.handleSelect} username={this.props.userName} chatHistory={this.state.chatHistory}/>
+									<ChatHistory avatars={this.props.avatars} channelId={this.props.channelID} psocket={socket} next={this.state.next} bookmark={this.handleSelect} username={this.props.userName} chatHistory={this.state.chatHistory}/>
 								</Col>
 							</Row>
 							<Row bottom="lg" style={{height:"10%",width:'100%'}}>

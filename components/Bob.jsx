@@ -19,6 +19,8 @@ export default class Bob extends React.Component{
          var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var c=utf8.decode(b);
+         var d=a.split("#")[1];
+         console.log(d,"avatar");
         // console.log(c,c.userName,"Nameee");
         this.state={
           userName:c,
@@ -26,7 +28,7 @@ export default class Bob extends React.Component{
           currentChannel:"",
           unreadCount:{},
           lat:{},
-         
+          avatars:{}
         };
         this.toggleCurrentChannel=this.toggleCurrentChannel.bind(this);
         this.handleChange=this.handleChange.bind(this);
@@ -34,22 +36,23 @@ export default class Bob extends React.Component{
       }
        componentDidMount(){
            let that=this;
-              this.context.socket.on('channelList', function (list,unreadCount,lat,currentChannel) {
+              this.context.socket.on('channelList', function (list,unreadCount,lat,currentChannel,avatars) {
                 console.log(currentChannel,"Bob current Channel Name");
-                that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel});
+                that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel,avatars:avatars});
                 cookie.save('projectName',currentChannel.split('#')[0]);
                 that.resetCurrentChannelUnread(that.state.unreadCount);
                  
             });
 
-              this.context.socket.on("updateUnread",function(currentChannel,prevChannel,d){
+              this.context.socket.on("updateUnread",function(currentChannel,prevChannel,d,avatars){
+                console.log("Inside Update Unread");
                 let temp=that.state.lat;
                 let unread=that.state.unreadCount;
                 temp[prevChannel]=d;
                 unread[prevChannel]=0;
                 //console.log(currentChannel,"bbbbbb");
                 //unread[that.state.currentChannel]=0;
-                that.setState({lat:temp,unreadCount:unread})
+                that.setState({lat:temp,unreadCount:unread,avatars:avatars})
                 that.resetCurrentChannelUnread(that.state.unreadCount);
               })
 
@@ -73,6 +76,7 @@ export default class Bob extends React.Component{
          }
 
       resetCurrentChannelUnread(unreadCount){
+        console.log("timeOut",unreadCount);
           var temp=unreadCount;
                 var channel=this.state.currentChannel;
                 //console.log(temp[channel],"temp");
@@ -123,7 +127,7 @@ export default class Bob extends React.Component{
                <ChannelList socket={this.context.socket} userName={this.state.userName} channelList={this.state.channelsList} currentChannel={this.state.currentChannel} unreadCount={this.state.unreadCount} setCurrentChannel={this.toggleCurrentChannel}/>
               </Col>
               <Col xs={8} sm={9} md={9} lg={9} style={{height:"100%",paddingRight:"0px"}}>
-             <ChatArea channelID={this.state.currentChannel} socket={this.context.socket} LiveUnreadCount={this.handleLiveUnreadCount.bind(this)} userName={this.state.userName}/>
+             <ChatArea avatars={this.state.avatars} channelID={this.state.currentChannel} socket={this.context.socket} LiveUnreadCount={this.handleLiveUnreadCount.bind(this)} userName={this.state.userName}/>
               </Col>
             </Row>
           </Grid>);

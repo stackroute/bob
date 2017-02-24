@@ -14,6 +14,8 @@ import {List, ListItem} from 'material-ui/List';
 import RaisedButton from 'material-ui/RaisedButton';
 import ContentInbox from 'material-ui/svg-icons/content/inbox';
 import Subheader from 'material-ui/Subheader';
+import Avatar from 'material-ui/Avatar';
+
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
@@ -29,9 +31,11 @@ const cardtext={
 export default class ChatHistory extends Component {
 	constructor(props){
 		super(props);
-		this.state={historyEnded:false,
+		this.state={
+		historyEnded:false,
 		bookitem:'',
-					checkStatus:false};
+	    checkStatus:false};
+	    console.log(this.props.avatars,"!!!!");
 	}
 
 
@@ -86,32 +90,39 @@ scrollToBottom() {
 			lem = (<FlatButton label="Load Earlier Messages" primary={true} onClick={this.getEarlierMessages.bind(this)}/>);
 
 		let messageList = this.props.chatHistory.map((message,i)=>{
-			if(this.props.username !== message.sender)
-			return (<Row key={i} end="xs"><Col xs={10} sm={10} md={10} lg={10} style={{maxWidth:'80%'}}>
-			<Paper><p><span style={{fontSize:"12px"}}>{message.TimeStamp}</span>{message.sender}</p>
-			<p>{message.msg}</p>
-			<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-      uncheckedIcon={<ActionFavoriteBorder />}/>
-      </Paper>
+			if(this.props.username !== message.sender){
+			return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
+			<Card>
+		<CardHeader title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
+
+			<CardTitle title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+      uncheckedIcon={<ActionFavoriteBorder />}/>}>
+      </CardTitle>
+           </Card>
 		</Col></Row>);
-		else
-		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{maxWidth:'80%'}}>
-		<Paper><p>{message.sender}<span style={{fontSize:"12px"}}>{message.TimeStamp}</span></p>
-			
-			<p>{message.msg}</p>
-			<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-      uncheckedIcon={<ActionFavoriteBorder />}/>
-      </Paper></Col></Row>);
+		}
+		else{
+		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
+		<Card>
+		<CardHeader title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
+		<CardTitle title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+      uncheckedIcon={<ActionFavoriteBorder />}/>}>
+      </CardTitle>
+        </Card>
+      </Col></Row>);
+	}
+	
 });
 return (
 
-	<Paper style={{ height:'100%'}}>
+	<div style={{ height:'100%'}}>
 		{lem}
 		{messageList}
 		<div style={ {float:"left", clear: "both"} }
     ref={(el) => { this.messagesEnd = el; }}></div>
-	</Paper>
+	</div>
 
 		);
 	}
 }
+

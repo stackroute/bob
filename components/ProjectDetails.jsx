@@ -98,11 +98,13 @@ handleUpdateInput(searchText){
 
    handleClick(){
        cookie.save('projectName',this.state.projectName);
-       var a=cookie.load("Token");
+         var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
+         var avatar=a.split("#")[1];
+         console.log("Avatar",a);
          this.state.addUsers.push(userName);
-       this.context.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers);
+       this.context.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers,avatar);
        window.setTimeout(()=>{hashHistory.push('/bob');},1000);
    }
 
@@ -140,7 +142,8 @@ handleUpdateInput(searchText){
     var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
-         this.context.socket.emit("JoinTeam",userName,this.state.projectName1);
+         var avatar=a.split("#")[1];
+         this.context.socket.emit("JoinTeam",userName,this.state.projectName1,avatar);
        }
     // console.log(this.state.projectName1);
     // let that=this;

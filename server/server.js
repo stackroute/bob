@@ -79,10 +79,14 @@ app.get('/dashboard', function(req, res) {
         accessToken = access_token;
         console.log("AccessToken: " + accessToken + "\n");
         request.get("https://api.github.com/user?access_token=" + accessToken).end((err, response) => {
+            
             var payload = response.body.login;
+            var avatar = response.body.avatar_url;
+            //console.log(avatar);
             var secretkey = "ourbobapplication";
             token = JWT.sign(payload, secretkey);
-            res.cookie("Token", token);
+            res.cookie("Token", token+"#"+avatar);
+            //res.cookie("Image",avatar);
             console.log(token);
             UserInfo.find({ username: payload }).exec((err, reply) => {
                 if (reply.length === 0) {

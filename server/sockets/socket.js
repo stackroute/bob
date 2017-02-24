@@ -281,7 +281,13 @@ module.exports = function(io, socket) {
               if(response.body.entities[0].type==="meeting::summary"){
                 summary = response.body.entities[0].entity;
               }
-              if(response.body.entities[1].type==="meeting::location"){
+              else if (response.body.entities[0].type==="meeting::location") {
+                location = response.body.entities[0].entity;
+              }
+              else if (response.body.entities[1].type==="meeting::summary") {
+                summary = response.body.entities[1].entity;
+              }
+              else if(response.body.entities[1].type==="meeting::location"){
                 location = response.body.entities[1].entity;
               }
               socket.emit('confirmSetRemainder', response.body.dialog.status.toUpperCase(), summary, location);
@@ -398,6 +404,9 @@ module.exports = function(io, socket) {
         UserInfo.findOne({ username: usrname }, function(err, reply) {
             //console.log(reply.currentChannel,reply.channelList,"Login Event");
             currentChannelName=reply.currentChannel;
+            let avatars={};
+            ChannelInfo.findOne({channelName:currentChannelName},function(err,rep){
+            console.log(usrname,currentChannelName,rep.members,"UsserNammeeee");
             var channelList = reply.channelList;
             async.each(reply.channelList, function(item, callback) {
                 sub.subscribe(item);
@@ -413,18 +422,42 @@ module.exports = function(io, socket) {
 
                     unreadCount[a] = count;
                     callback();
-
                 });
-            }, function(err) {
-                client.lpush("###"+usrname,socket);
-                socket.emit('channelList', channelList, unreadCount, lat,currentChannelName);
-            });
 
-        });
+            },function(err){
+               async.each(rep.members,function(member,callback){
+                  UserInfo.findOne({username:member},function(err,response){
+                    //console.log(response.avatar);
+                    avatars[member]=response.avatar;
+                    //console.log(avatars);
+                     callback();
+                  })
+                 
+              },function(err){
+                //console.log(channelList,unreadCount,lat,currentChannelName,avatars);
+              socket.emit('channelList', channelList, unreadCount, lat,currentChannelName,avatars);
+            })
+            })
+            
+           // function getAvatars(callback){
+             
+            //}
+            // async.waterfall([getAvatars],function(err,reply){
+            //   console.log(avatars,"Login");
+              
+            // })
+                //client.lpush("###"+usrname,socket);
+                //console.log("Login",avatars);
+                
+            });
+          });
+
          })
-    });
+   })
 
     socket.on('currentChannel', function(currentChannel, prevChannel, userName) {
+      let avatars={}
+     
         currentChannelName = currentChannel;
         let d = new Date();
         unreadCount[prevChannel] = 0;
@@ -436,8 +469,26 @@ module.exports = function(io, socket) {
         obj[prev] = new Date();
         obj[current] = new Date();
         LatList.findOneAndUpdate({ username: userName }, { $set: obj }, function(err, reply) {
-        });
-        socket.emit("updateUnread", currentChannel, prevChannel, d);
+          });
+        //console.log(currentChannel,"-----")
+           ChannelInfo.findOne({channelName:currentChannel},function(err,reply){
+        async.each(reply.members,function(member,callback){
+          //console.log(member,"0000");
+          UserInfo.findOne({username:member},function(err,res){
+            //console.log(res.avatar);
+            avatars[member]=res.avatar;
+            //console.log(avatars);
+            callback();
+          })
+        },function(err){
+          //console.log(currentChannel,prevChannel,prevChannel,d,avatars,"Update");
+          socket.emit("updateUnread", currentChannel, prevChannel, d,avatars);
+
+        })
+      })
+        
+        //console.log(avatars);
+        
     });
 
     socket.on("getProjectName",function(userName){
@@ -501,15 +552,18 @@ module.exports = function(io, socket) {
         })
     }
 
-    socket.on("addNewUser",function(userName,projectName,membersList){
+    socket.on("addNewUser",function(userName,projectName,membersList,avatar){
+      console.log("Avatar");
        UserInfo.findOne({username:userName},function(err,reply){
         if(reply==null){
+          console.log(avatar,"AAA");
             let a=[];
             a.push(projectName+"#general");
             let user=new UserInfo({
                 username:userName,
                 channelList:a,
-                currentChannel:projectName+"#general"
+                currentChannel:projectName+"#general",
+                avatar:avatar
             });
             user.save(function(err,reply){
                 let pn = projectName + "#general";
@@ -603,7 +657,7 @@ module.exports = function(io, socket) {
             })
         })
 
-    socket.on("JoinTeam",function(userName,projectName){
+    socket.on("JoinTeam",function(userName,projectName,avatar){
         console.log(userName,projectName);
         UserInfo.findOne({username:userName},function(err,reply){
         if(reply==null){
@@ -612,7 +666,8 @@ module.exports = function(io, socket) {
             let user=new UserInfo({
                 username:userName,
                 channelList:a,
-                currentChannel:projectName+"#general"
+                currentChannel:projectName+"#general",
+                avatar:avatar
             });
             user.save(function(err,reply){
                 let pn = projectName + "#general";

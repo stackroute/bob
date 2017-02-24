@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 let userSchema = new Schema({
   username : String,
   channelList : [String],
-  currentChannel: String
+  currentChannel: String,
+  avatar:String
 });
 module.exports = mongoose.model('UserInfo', userSchema);
