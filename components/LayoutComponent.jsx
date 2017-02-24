@@ -13,7 +13,6 @@ import 'react-drawer/lib/react-drawer.css';
 var base64 = require('base-64');
 var utf8 = require('utf8');
 import cookie from 'react-cookie';
-import io from 'socket.io-client';
 import request from 'superagent';
 import AddTile from './AddTile.jsx';
 import ReactDrawer from 'react-drawer';
@@ -30,7 +29,6 @@ export default class LayoutComponent extends Component {
         this.state={
             layout:[],
             userId:c,
-            socket:io('http://bob.blr.stackroute.in'),
             openedTileId:"",
             openedMessages:[],
             openSnackbar:false,
@@ -96,7 +94,7 @@ export default class LayoutComponent extends Component {
         
   }
   componentDidMount(){
-    this.state.socket.emit("login",this.state.userId,cookie.load('projectName'));
+    this.context.socket.emit("login",this.state.userId,cookie.load('projectName'));
   }
 
   addTile(){
@@ -149,7 +147,7 @@ export default class LayoutComponent extends Component {
 
       tile_list = tile_list.map((item,i)=>{ 
          return (<div key={item.i}><Tile userId={this.state.userId}
-                 psocket={this.state.socket} tileId = {item.i}
+                 psocket={this.context.socket} tileId = {item.i}
                   handleDelete={this.deleteTile.bind(this,item.i)}
                   handleViewAll = {this.toggleDrawer.bind(this,item.i)}
                   />
@@ -174,7 +172,7 @@ export default class LayoutComponent extends Component {
                   noOverlay={this.state.noOverlay}
               >
                 <TileOpen msgList = {this.state.openedMessages} tileId = {this.state.openedTileId}
-                  userId={this.state.userId} psocket={this.state.socket}/>
+                  userId={this.state.userId} psocket={this.context.socket}/>
               </ReactDrawer>
             </div>
             
@@ -204,3 +202,6 @@ export default class LayoutComponent extends Component {
   }
 }
 
+LayoutComponent.contextTypes = {
+  socket:React.PropTypes.object
+};

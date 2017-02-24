@@ -13,7 +13,7 @@ import Dialog from 'material-ui/Dialog';
 import {List, ListItem} from 'material-ui/List';
 import RaisedButton from 'material-ui/RaisedButton';
 import ContentInbox from 'material-ui/svg-icons/content/inbox';
-import Subheader from 'material-ui/Subheader';
+
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
@@ -87,21 +87,19 @@ scrollToBottom() {
 
 		let messageList = this.props.chatHistory.map((message,i)=>{
 			if(this.props.username !== message.sender)
-			return (<Row key={i} end="xs"><Col xs={10} sm={10} md={10} lg={10} style={{maxWidth:'80%'}}>
-			<Paper><p><span style={{fontSize:"12px"}}>{message.TimeStamp}</span>{message.sender}</p>
-			<p>{message.msg}</p>
+			return (<Row key={i} end="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:'2vh',marginBottom:'2vh',maxWidth:'80%'}}><Card >
+			<CardTitle style={cardtitle} title={message.sender} subtitle={message.TimeStamp}  />
+			<CardText style={cardtext}>{message.msg}</CardText>
 			<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
       uncheckedIcon={<ActionFavoriteBorder />}/>
-      </Paper>
-		</Col></Row>);
+		</Card></Col></Row>);
 		else
-		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{maxWidth:'80%'}}>
-		<Paper><p>{message.sender}<span style={{fontSize:"12px"}}>{message.TimeStamp}</span></p>
-			
-			<p>{message.msg}</p>
+		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:'2vh',marginBottom:'2vh',maxWidth:'80%'}}><Card >
+		<CardTitle style={cardtitle} title={message.sender} subtitle={message.TimeStamp}  />
+		<CardText style={cardtext}>{message.msg}</CardText>
 			<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
       uncheckedIcon={<ActionFavoriteBorder />}/>
-      </Paper></Col></Row>);
+	</Card></Col></Row>);
 });
 return (
 

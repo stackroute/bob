@@ -12,7 +12,6 @@ import request from 'superagent';
 import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import AutoComplete from 'material-ui/AutoComplete';
 import cookie from 'react-cookie';
-import io from 'socket.io-client';
 
 
 var base64 = require('base-64');
@@ -32,7 +31,6 @@ export default class ProjectDetails extends Component {
        this.state={
            projectName:"",
            projectError:"",
-           socket:io('http://bob.blr.stackroute.in'),
            projectsList:[],
            searchText:"",
            usersList:[],
@@ -57,13 +55,13 @@ export default class ProjectDetails extends Component {
     var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
-    this.state.socket.emit("getProjectName",userName);
+    this.context.socket.emit("getProjectName",userName);
     let that=this;
-    this.state.socket.on("takeProjectList",function(projectsList,usersList){
+    this.context.socket.on("takeProjectList",function(projectsList,usersList){
       console.log(usersList);
       that.setState({projectsList:projectsList,usersList:usersList})
     })
-    this.state.socket.on("Joined",function(){
+    this.context.socket.on("Joined",function(){
       hashHistory.push("/bob");
     })
    }
@@ -104,7 +102,7 @@ handleUpdateInput(searchText){
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
          this.state.addUsers.push(userName);
-       this.state.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers);
+       this.context.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers);
        window.setTimeout(()=>{hashHistory.push('/bob');},1000);
    }
 
@@ -142,7 +140,7 @@ handleUpdateInput(searchText){
     var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
-         this.state.socket.emit("JoinTeam",userName,this.state.projectName1);
+         this.context.socket.emit("JoinTeam",userName,this.state.projectName1);
        }
     // console.log(this.state.projectName1);
     // let that=this;
@@ -210,3 +208,6 @@ handleUpdateInput(searchText){
    }
 
 }
+ProjectDetails.contextTypes = {
+  socket:React.PropTypes.object
+};

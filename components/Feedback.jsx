@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Paper from 'material-ui/Paper';
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
-import io from 'socket.io-client';
 import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 
 export default class Feedback extends Component {
@@ -11,7 +10,7 @@ export default class Feedback extends Component {
 
    super(props);
 
-   this.state={name:"",comments:"",display:"",socket:null,errName:"",errComments:""}
+   this.state={name:"",comments:"",display:"",errName:"",errComments:""}
 
    this.handleNameChange=this.handleNameChange.bind(this);
 
@@ -21,11 +20,6 @@ export default class Feedback extends Component {
 
  }
 
- componentDidMount() {
-
-   this.setState({socket:io('http://bob.blr.stackroute.in')})
-
- }
 
  handleNameChange(e){
 
@@ -57,7 +51,7 @@ else{
 
    console.log("comment : ", obj["comment"]);
 
-   this.state.socket.emit("feedback",obj);
+   this.context.socket.emit("feedback",obj);
 
    let a="We have received your feedback "+this.state.name+".Keep Supporting BOB!!"
 
@@ -106,3 +100,6 @@ else{
  }
 
 }
+Feedback.contextTypes = {
+  socket:React.PropTypes.object
+};

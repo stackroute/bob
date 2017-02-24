@@ -6,20 +6,24 @@ import IconButton from 'material-ui/IconButton';
 import {Link,hashHistory} from 'react-router';
 import Drawer from 'material-ui/Drawer';
 import MenuItem from 'material-ui/MenuItem';
-import io from 'socket.io-client';
 import cookie from 'react-cookie';
 import Notifications from 'material-ui/svg-icons/social/notifications';
 import Chat from 'material-ui/svg-icons/communication/chat';
 import Add from 'material-ui/svg-icons/content/add';
+import io from 'socket.io-client';
 export default class Header extends React.Component{
+	getChildContext(){
+		return {socket:this.state.socket};
+	}
 
 	constructor(props) {
 		super(props);
 		this.state = {
 					open: false,
-					icons: <Link to={'notification'}><IconButton tooltip="Chat Screen" tooltipPosition="bottom-right" iconStyle={{color:"white"}}><Notifications/></IconButton></Link>
+					icons: <Link to={'notification'}><IconButton tooltip="Chat Screen" tooltipPosition="bottom-right" iconStyle={{color:"white"}}><Notifications/></IconButton></Link>,
+					socket:io('http://bob.blr.stackroute.in')
 			};
-			this.handleToggle = this.handleToggle.bind(this);
+		this.handleToggle = this.handleToggle.bind(this);
 		this.handleLogOut=this.handleLogOut.bind(this);
 	}
 		handleLogOut(){
@@ -49,6 +53,8 @@ export default class Header extends React.Component{
 		<Link to={'/'}><IconButton tooltip="LogOut" tooltipPosition="bottom-left" onTouchTap={this.handleLogOut} iconStyle={{color:"white"}}><SettingsPower/></IconButton></Link>
 		</div>
 		}
+
+
 		return(
 			<div style={{marginTop:"0px"}}>
 				<AppBar title="Bob(beta)" iconElementLeft={this.state.icons} onLeftIconButtonTouchTap={this.handleToggle} style={{background:"#3F51B5",marginTop:"0px"}} >
@@ -63,6 +69,6 @@ export default class Header extends React.Component{
 }
 }
 
-// Header.childContextTypes = {
-//   socket: React.PropTypes.object
-// };
+ Header.childContextTypes = {
+   socket: React.PropTypes.object
+ };

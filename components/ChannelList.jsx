@@ -46,7 +46,7 @@ export default class ChannelList extends React.Component{
    // console.log("setCurrentChannel", item);
     var temp=this.props.currentChannel;
     console.log(item,this.state.currentChannel,"heloooooo");
-    this.props.setCurrentChannel(this.state.currentProject+"#"+item,temp);
+    this.props.setCurrentChannel(this.props.currentChannel.split("#")[0]+"#"+item,temp);
   }
   
   handleAddChannel(){
@@ -64,7 +64,7 @@ export default class ChannelList extends React.Component{
   }
 
   handleSubmit(){
-    this.props.socket.emit('newChannel', this.props.userName,this.state.currentProject,this.state.channelName,this.state.type);
+    this.props.socket.emit('newChannel', this.props.userName,this.props.currentChannel.split("#")[0],this.state.channelName,this.state.type);
     this.setState({open:false,channelName:""})
   }
 
@@ -95,71 +95,44 @@ export default class ChannelList extends React.Component{
   <RadioButton value="private" label="Private"/>
   </RadioButtonGroup>      
   </Dialog>
-  let projects=[];
-  this.props.channelList.map((item,i)=>{
-    if(projects.indexOf(item.split("#")[0])==-1){
-      projects.push(item.split("#")[0]);
-    }
-  })
+  // let projects=[];
+  // this.props.channelList.map((item,i)=>{
+  //   if(projects.indexOf(item.split("#")[0])==-1){
+  //     projects.push(item.split("#")[0]);
+  //   }
+  // })
   let channels=[];
   this.props.channelList.map((item,i)=>{
-    if(this.state.currentProject==item.split('#')[0]){
+    if(this.props.currentChannel.split('#')[0]==item.split('#')[0]){
       channels.push(item.split('#')[1]);
     }
   })
-
-let channelList=<div>{channels.map((item,i)=>{
-    return(<ListItem key={i} primaryText={item} onTouchTap={this.handleChange.bind(this,(this.state.channelName+item))} rightIcon={<Badge badgeContent={this.props.unreadCount[this.state.currentProject+'#'+item]} primary={true}></Badge>}/>)
-})}
-    </div>
-   // let channelList = Object.getOwnPropertyNames(twoD).map((item,i)=>{
-
-   //    let nestedItems = twoD[item].map((element,index)=>{
-   //      return (<ListItem
-   //                key={index}
-   //                primaryText={element}
-   //                rightIcon={<Badge badgeContent={this.props.unreadCount[item+"#"+element]} primary={true}></Badge>}
-   //                onTouchTap={this.handleChange.bind(this,(item+"#"+element))}
-
-   //              />);
-   //    });
-   //    return (<ListItem
-   //            primaryText={item}
-   //            key={i}
-   //            initiallyOpen={true}
-   //            primaryTogglesNestedList={true}
-   //            nestedItems={nestedItems}
-
-   //              />);
-              
-   // });
+console.log(this.props.currentChannel,"00000000");
+// let channelList=<div>{channels.map((item,i)=>{
+//     return(<ListItem key={i} value={item} primaryText={item} onTouchTap={this.handleChange.bind(this,(this.state.channelName+item))} rightIcon={<Badge badgeContent={this.props.unreadCount[this.state.currentProject+'#'+item]} primary={true}></Badge>}/>)
+// })}
+    //</div>
     return(
       <div style={{height:'100%',border:'solid 1px #d9d9d9'}}>
        <Grid style={{height:'100%',width:"100%"}}>
        <Paper style={{height:'100%',width:"100%"}}>
-          <Row style={{width:"100%"}}>
-            <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%',width:"100%"}}>
-       <Subheader style={{fontSize:"18px"}}>Switch Project<IconButton style={{marginLeft:"100px"}} onTouchTap={this.handleDrawerOpen}><ViewList/></IconButton></Subheader>
-      </Col>
-          </Row>
        <Row style={{width:"100%"}}>
             <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%',width:"100%"}}>
-       <Subheader style={{fontSize:"18px"}}>Channels<IconButton onTouchTap={this.handleAddChannel} style={{marginLeft:"136px"}}><AddCircle/></IconButton></Subheader>
+       <Subheader style={{fontSize:"18px"}}>Channels<IconButton onTouchTap={this.handleAddChannel} style={{marginLeft:"20px"}}><AddCircle/></IconButton></Subheader>
       </Col>
           </Row>
           <Row style={{width:"100%"}}>
             <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
       {display}
-      <SelectableList >
-      {channelList}
-      <Drawer open={this.state.dOpen}>
-       <Subheader style={{fontSize:"20px"}}>Your Projects</Subheader>
-       <SelectableList value={this.state.currentProject}>
-          {projects.map((item,i)=>{
-            return(<ListItem key={i} value={item} onTouchTap={this.handleProjectChange.bind(this,item)}>{item}</ListItem>);
-          })}
-        </SelectableList>
-      </Drawer>
+      <SelectableList value={this.props.currentChannel.split('#')[1]}>
+      {channels.map((item,i)=>{
+        if(this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]!=0&&this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]!=undefined){
+        return(<ListItem key={i} value={item} primaryText={item} onTouchTap={this.handleChange.bind(this,item)} rightIcon={<Badge badgeContent={this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]} primary={true}></Badge>}/>);
+        }
+        else{
+          return(<ListItem key={i} value={item} primaryText={item} onTouchTap={this.handleChange.bind(this,item)}/>);
+        }
+      })}
       </SelectableList>
       </Col>
           </Row>
@@ -169,3 +142,4 @@ let channelList=<div>{channels.map((item,i)=>{
     );
   }
 }
+

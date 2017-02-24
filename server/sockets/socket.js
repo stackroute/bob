@@ -416,6 +416,7 @@ module.exports = function(io, socket) {
 
                 });
             }, function(err) {
+                client.lpush("###"+usrname,socket);
                 socket.emit('channelList', channelList, unreadCount, lat,currentChannelName);
             });
 
@@ -589,11 +590,11 @@ module.exports = function(io, socket) {
                     ChannelInfo.findOneAndUpdate({channelName:projectName},{$set:{members:c}},function(err,reply){
                               UserInfo.findOne({ username: userName }, function(err, reply) {
                                 //console.log(reply,"Emitting Channel List");
-                              reply.channelList = reply.channelList.filter((item, i) => {
-                              if ((item.split('#'))[0] === projectName.split("#")[0]) {
-                              return item;
-                                 }
-                                });
+                              // reply.channelList = reply.channelList.filter((item, i) => {
+                              // if ((item.split('#'))[0] === projectName.split("#")[0]) {
+                              // return item;
+                              //    }
+                              //   });
                              socket.emit('updatedChannelList', reply.channelList);
                               });
                        })

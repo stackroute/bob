@@ -13,6 +13,7 @@ import {cyan500,cyan50,indigo700,grey900,grey600,white,red,fullBlack, cyan700,
   pinkA200,grey100, grey300, grey400, grey500, darkBlack,} from 'material-ui/styles/colors';
   import getMuiTheme from 'material-ui/styles/getMuiTheme';
   import {fade} from 'material-ui/utils/colorManipulator';
+  import muiThemeable from 'material-ui/styles/muiThemeable';
 
   const muiTheme = getMuiTheme({
     palette: {
