@@ -281,7 +281,13 @@ module.exports = function(io, socket) {
               if(response.body.entities[0].type==="meeting::summary"){
                 summary = response.body.entities[0].entity;
               }
-              if(response.body.entities[1].type==="meeting::location"){
+              else if (response.body.entities[0].type==="meeting::location") {
+                location = response.body.entities[0].entity;
+              }
+              else if (response.body.entities[1].type==="meeting::summary") {
+                summary = response.body.entities[1].entity;
+              }
+              else if(response.body.entities[1].type==="meeting::location"){
                 location = response.body.entities[1].entity;
               }
               socket.emit('confirmSetRemainder', response.body.dialog.status.toUpperCase(), summary, location);
