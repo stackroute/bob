@@ -104,7 +104,6 @@ export default class Chat extends React.Component{
 			if(msg.hasOwnProperty('typer')){
 				this.handleTyping(msg.typer);
 			}
-
 			else 
 			{
 				//console.log(msg);

@@ -1,14 +1,17 @@
-import React from 'react';
-import ChannelList from './ChannelList.jsx';
-import async from 'async';
 import {List, ListItem,makeSelectable} from 'material-ui/List';
+import { Grid, Row, Col} from 'react-flexbox-grid/lib';
+import ChannelList from './ChannelList.jsx';
 import ChatArea from './ChatArea.jsx';
-import ProjectsList from './ProjectsList.jsx';
 import Header from './Header.jsx';
 import RaisedButton from 'material-ui/RaisedButton';
+import React from 'react';
+import Snackbar from 'material-ui/Snackbar';
 import TextField from 'material-ui/TextField';
-import { Grid, Row, Col} from 'react-flexbox-grid/lib';
+
+import async from 'async';
 import cookie from 'react-cookie';
+import ProjectsList from './ProjectsList.jsx';
+
 var base64 = require('base-64');
 var utf8 = require('utf8');
 
@@ -28,7 +31,9 @@ export default class Bob extends React.Component{
           currentChannel:"",
           unreadCount:{},
           lat:{},
-          avatars:{}
+          avatars:{},
+          snackbarData:"",
+          openSnackbar:false
         };
         this.toggleCurrentChannel=this.toggleCurrentChannel.bind(this);
         this.handleChange=this.handleChange.bind(this);
@@ -72,6 +77,17 @@ export default class Bob extends React.Component{
                 let a=channel.length;
                that.setState({channelsList: channel,currentChannel:channel[a-1]});
              });
+
+              this.context.socket.on('joinedNewChannel',function(message){ //added by manoj
+                if(message.toId===that.state.userName)
+                  that.setState((prevState,props)=>{
+                    prevState.channelsList.push(message.newDM);
+                    prevState.lat[message.newDM] = message.lat;
+                    prevState.unreadCount[message.newDM] = 0;
+                    console.log(prevState,"prevstate");
+                    return {channelsList:prevState.channelsList,lat:prevState.lat,unreadCount:prevState.unreadCount};
+                  });
+              });
                this.context.socket.emit("login",this.state.userName,cookie.load('projectName'));
          }
 
@@ -92,6 +108,9 @@ export default class Bob extends React.Component{
       handleChange(e){
         this.setState({userName:e.target.value})
       }
+      handleRequestClose(){ //added my manoj
+        this.setState({openSnackbar:false});
+      }
 
       handleClick(){
         this.context.socket.emit("login",this.state.userName);
@@ -110,9 +129,21 @@ export default class Bob extends React.Component{
           return prevState.unreadCount[channelID]++;
         });
       }
+
+      snackbar(data){ //added by manoj
+        this.setState({openSnackbar:true,snackbarData:data});
+        window.setTimeout(()=>{this.setState({openSnackbar:false})},4000)
+      }
+
+      pushChannel(channel){ //added by manoj
+        this.setState((prevState,props)=>{
+                    prevState.channelsList.push(channel);
+                    return {channelsList:prevState.channelsList};
+                  });
+      }
      
       render(){
-      // console.log(this.state.userName,"User Name");
+       console.log(this.state,"User Name");
         let chatArea;
          if(this.context.socket!=null&&this.state.currentChannel!=""){
         //console.log(this.state.currentChannel,"current Channel");
@@ -124,7 +155,11 @@ export default class Bob extends React.Component{
             <ProjectsList projects={this.state.channelsList} currentChannel={this.state.currentChannel} setCurrentChannel={this.toggleCurrentChannel}/>
             </Col>
               <Col xs={2} sm={1} md={2} lg={2} style={{height:"100%",paddingRight:"0px"}}>
-               <ChannelList socket={this.context.socket} userName={this.state.userName} channelList={this.state.channelsList} currentChannel={this.state.currentChannel} unreadCount={this.state.unreadCount} setCurrentChannel={this.toggleCurrentChannel}/>
+               <ChannelList socket={this.context.socket} userName={this.state.userName}
+                             channelList={this.state.channelsList} currentChannel={this.state.currentChannel} 
+                             unreadCount={this.state.unreadCount} setCurrentChannel={this.toggleCurrentChannel}
+                             snackbar = {this.snackbar.bind(this)}
+                              pushChannel = {this.pushChannel.bind(this)}/>
               </Col>
               <Col xs={8} sm={9} md={9} lg={9} style={{height:"100%",paddingRight:"0px"}}>
              <ChatArea avatars={this.state.avatars} channelID={this.state.currentChannel} socket={this.context.socket} LiveUnreadCount={this.handleLiveUnreadCount.bind(this)} userName={this.state.userName}/>
@@ -144,6 +179,12 @@ export default class Bob extends React.Component{
                   {chatArea}
                 </Col>
               </Row>
+               <Snackbar   //added by manoj
+              open={this.state.openSnackbar}
+              message={this.state.snackbarData}
+              autoHideDuration={4000}
+              onRequestClose={this.handleRequestClose.bind(this)}
+              />
             </Grid>
         );
       }

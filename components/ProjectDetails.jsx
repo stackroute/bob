@@ -1,16 +1,17 @@
-import React, { Component } from 'react';
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
-import Paper from 'material-ui/Paper';
+import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
+import {Link,hashHistory} from 'react-router';
+import AutoComplete from 'material-ui/AutoComplete';
 import Chip from 'material-ui/Chip';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
-import NavigateNext from 'material-ui/svg-icons/image/navigate-next';
 import NavigateBefore from 'material-ui/svg-icons/image/navigate-before';
+import NavigateNext from 'material-ui/svg-icons/image/navigate-next';
+import Paper from 'material-ui/Paper';
+import RaisedButton from 'material-ui/RaisedButton';
+import React, { Component } from 'react';
+import TextField from 'material-ui/TextField';
 import SwipeableViews from 'react-swipeable-views';
-import {Link,hashHistory} from 'react-router';
+
 import request from 'superagent';
-import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
-import AutoComplete from 'material-ui/AutoComplete';
 import cookie from 'react-cookie';
 
 
@@ -31,13 +32,15 @@ export default class ProjectDetails extends Component {
        this.state={
            projectName:"",
            projectError:"",
+           joinError:"",
            projectsList:[],
            searchText:"",
            usersList:[],
            addUsers:[],
            slideIndex:0,
            projectName1:"",
-           projectName1Error:""
+           nonUserProjects:[],
+           create:false
        }
 
        this.handleProjectChange=this.handleProjectChange.bind(this);
@@ -58,15 +61,41 @@ export default class ProjectDetails extends Component {
     this.context.socket.emit("getProjectName",userName);
     let that=this;
     this.context.socket.on("takeProjectList",function(projectsList,usersList){
-      console.log(usersList);
-      that.setState({projectsList:projectsList,usersList:usersList})
+     console.log(usersList);
+     console.log("asking channels of ",userName);
+       request.get('http://bob.blr.stackroute.in/user/'+userName+'/channels')
+        .end((err,res)=>{
+
+          if(JSON.parse(res.text).result){
+                      res = JSON.parse(res.text);
+                      console.log("from get channels of users",res.data);
+                      res.data = res.data.map((item)=>{  //get all the projectName of user.
+                        return item.split('#')[0];
+                      });
+
+                      let data = projectsList.filter((item)=>{  //compute nonUserProjects
+                        return !res.data.includes(item);
+                      });
+                      console.log("these are non up ",data);
+                      
+                      let index = usersList.indexOf(userName); //remove user from userslist.
+                      if(index > -1)
+                        usersList.splice(index,1);
+          
+                      that.setState({nonUserProjects:data,projectsList:projectsList,usersList:usersList});
+                    }
+          else{
+                      that.setState({nonUserProjects:projectsList,projectsList:projectsList,usersList:usersList});
+
+          }
+
+        });
     })
-    this.context.socket.on("Joined",function(){
-      hashHistory.push("/bob");
-    })
+    
    }
 
 handleUpdateInput(searchText){
+    
     this.setState({
       searchText: searchText,
     });
@@ -116,7 +145,7 @@ handleUpdateInput(searchText){
            this.setState({projectError:"Please Enter a Team Name"});
        }
      else if(this.state.projectsList.indexOf(this.state.projectName)!=-1){
-      this.setState({projectError:"Team already Exists.Try a new name"})
+      this.setState({projectError:"Team already Exists.Try a new name"});
     }
        else{
     var a=this.state.slideIndex;
@@ -136,14 +165,30 @@ handleUpdateInput(searchText){
 
     handleJoin(){
       if(this.state.projectName1==""){
-          this.setState({projectName1Error:"Team Name cannot be empty"})
+          this.setState({joinError:"Team Name cannot be empty"})
       }
       else{
     var a=cookie.load("Token");
          var b=base64.decode(a.split('.')[1]);
          var userName=utf8.decode(b);
          var avatar=a.split("#")[1];
-         this.context.socket.emit("JoinTeam",userName,this.state.projectName1,avatar);
+
+         //this.context.socket.emit("JoinTeam",userName,this.state.projectName1,avatar);
+         request
+          .post('http://bob.blr.stackroute.in/user/'+userName+"/project")
+          .send({userName:userName,projectName:this.state.projectName1,avatar:avatar})
+          .end((err,res)=>{
+            if(JSON.parse(res.text).result)
+                    hashHistory.push("/bob");
+            else
+              {
+                console.log("error is ",JSON.parse(res.text).status);
+                this.setState({joinError:JSON.parse(res.text).status});
+              }
+
+
+
+          });
        }
     // console.log(this.state.projectName1);
     // let that=this;
@@ -159,7 +204,7 @@ handleUpdateInput(searchText){
     // })
    }
    render() {
-;
+    console.log("this is curretn project ,",this.state);
        return (
 
            <div style={{height:"100%"}}>
@@ -176,6 +221,12 @@ handleUpdateInput(searchText){
               <FloatingActionButton mini={true} onTouchTap={this.handleSlideChange} style={{marginBottom:"20px"}}>
                 <NavigateNext />
                </FloatingActionButton>
+            <br/><br/>
+
+               <h3>Join A Project</h3>
+            <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} errorText={this.state.joinError} hintText="Teams" searchText={this.state.projectName1}  maxSearchResults={4} onUpdateInput={this.handleProjectChange1} dataSource={this.state.nonUserProjects} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
+            <RaisedButton label="Join" primary={true} onClick={this.handleJoin}/>
+            <br/><br/>
             </div>
             <div>
             <h3>Add Members</h3>
@@ -188,13 +239,10 @@ handleUpdateInput(searchText){
                 <FloatingActionButton mini={true} onTouchTap={this.handleSlideChangeBackward} style={{marginBottom:"20px"}}>
                 <NavigateBefore />
                </FloatingActionButton><br/>
-              <RaisedButton label="Create"  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/>
+              <RaisedButton label="Create" disabled={!this.state.create}  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/>
            </div>
            </SwipeableViews>
-           <h3>Join A Project</h3>
-            <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} errorText={this.state.projectName1Error} hintText="Teams" searchText={this.state.projectName1}  maxSearchResults={4} onUpdateInput={this.handleProjectChange1} dataSource={this.state.projectsList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
-            <RaisedButton label="Join" primary={true} onClick={this.handleJoin}/>
-            <br/><br/>{this.state.request}
+           
            </Paper>
           </Col>
         </Row>
