@@ -44,6 +44,7 @@ export default class ChatHistory extends Component {
 		this.handleOpen=this.handleOpen.bind(this);
 		this.handleClose=this.handleClose.bind(this);
 	    console.log(this.props.avatars,"!!!!");
+
 	}
 
 
@@ -89,7 +90,6 @@ scrollToBottom() {
 		this.props.psocket.emit('receiveChatHistory',msg);
 	}
 
-
 	// Task functionality START ---------->
 	addTask(val){
     var lists = this.state.task;
@@ -121,6 +121,7 @@ scrollToBottom() {
 	render() {
 		//console.log("this is chatHistory channelid ",this.props.channelId);
 		//console.log(this.props.chatHistory);
+
 		const actions = [
 			<FlatButton
 				label="OK"
@@ -174,7 +175,7 @@ scrollToBottom() {
         </Card>
       </Col></Row>);
 	}
-	
+
 });
 return (
 
@@ -188,4 +189,3 @@ return (
 		);
 	}
 }
-

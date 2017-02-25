@@ -9,8 +9,6 @@ let UserInfo = require('./../model/userinfo.schema.js');
 let LatList = require('./../model/lat.schema.js'),
     Feedback = require('./../model/feedback.schema.js'),
     Tasks = require('./../model/tasks.schema.js');
-    
-
 const ChannelInfo = require('./../model/channelinfo.schema.js');
 let GoogleAToken = require('./../model/googleatoken.schema.js');
 let bookmarkData = require('./../model/bookmarkSchema.js');
@@ -53,12 +51,11 @@ module.exports = function(io, socket) {
     socket.on('deleteBookmarks', deleteBookmarks);
     socket.on('taskArray', saveTaskArray);
 
-
     function saveTaskArray(channelName, tasks){
       Tasks.update({channelName:channelName},{$set:{tasks: tasks}}, {upsert: true}, function(err, reply){
         console.log('Task saved : ', reply);
       });
-    }
+
 
     function deleteBookmarks(booklist, userName, channelID) {
         console.log(booklist);
@@ -108,6 +105,11 @@ module.exports = function(io, socket) {
             }
         });
     }
+    socket.on("bookmarkHistory",function(userName,channelName){
+      bookmarkData.find({userName:userName},function(err,reply){
+        socket.emit("receiveBoomarkHistory",reply);
+      })
+    })
 
 
     function tokenSearch(username, summary, location, sd, ed) {
@@ -475,14 +477,15 @@ module.exports = function(io, socket) {
                     //console.log("Login",avatars);
 
                 });
+
             });
 
         })
     })
 
     socket.on('currentChannel', function(currentChannel, prevChannel, userName) {
-        let avatars = {}
 
+        let avatars = {}
         currentChannelName = currentChannel;
         let d = new Date();
         unreadCount[prevChannel] = 0;
@@ -542,7 +545,9 @@ module.exports = function(io, socket) {
                     //console.log(projects,"projects",usersProjects,"List of Projects");
                 socket.emit("takeProjectList", projects, users);
             })
+
         })
+
 
 
 
@@ -629,6 +634,7 @@ module.exports = function(io, socket) {
                 addMembers(userName, projectName + "#general", membersList, "private");
             }
         })
+
     })
 
     socket.on("getMembersList", function(channelName) {
@@ -677,6 +683,7 @@ module.exports = function(io, socket) {
                 })
             })
         })
+
     })
 
     // socket.on("JoinTeam", function(userName, projectName, avatar) {
