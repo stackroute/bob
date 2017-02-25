@@ -6,7 +6,6 @@ import Paper from 'material-ui/Paper';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import DatePicker from 'material-ui/DatePicker';
-import ajax from 'superagent';
 
 export default class NewMessage extends Component {
 	constructor(props){
@@ -35,7 +34,6 @@ export default class NewMessage extends Component {
 		this.handleChangeStartDate=this.handleChangeStartDate.bind(this);
 		this.handleChangeEndDate=this.handleChangeEndDate.bind(this);
 		this.handleKeyPress=this.handleKeyPress.bind(this);
-		this.ajaxCall=this.ajaxCall.bind(this);
 	}
 
 	componentDidMount(){
