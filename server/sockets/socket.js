@@ -104,6 +104,11 @@ module.exports = function(io, socket) {
          }
         });
     }
+    socket.on("bookmarkHistory",function(userName,channelName){
+      bookmarkData.find({userName:userName},function(err,reply){
+        socket.emit("receiveBoomarkHistory",reply);
+      })
+    })
 
 
     function tokenSearch(username, summary, location, sd, ed){
