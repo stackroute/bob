@@ -15,6 +15,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import ContentInbox from 'material-ui/svg-icons/content/inbox';
 import Subheader from 'material-ui/Subheader';
 import Avatar from 'material-ui/Avatar';
+import Tasks from './Tasks.jsx';
 
 const cardtitle={
 	padding: '5px',
@@ -34,8 +35,14 @@ export default class ChatHistory extends Component {
 		this.state={
 		historyEnded:false,
 		bookitem:'',
-	    checkStatus:false};
-	    console.log(this.props.avatars,"!!!!");
+	    checkStatus:false,
+	                task:[],
+	                response:'',
+									sn:false
+		};
+		this.addTask = this.addTask.bind(this);
+		this.handleOpen=this.handleOpen.bind(this);
+		this.handleClose=this.handleClose.bind(this);
 	}
 
 
@@ -60,6 +67,12 @@ scrollToBottom() {
 		//console.log("this is client sending request    ",msg);
 		//console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nthis is mounted\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		this.props.psocket.emit('receiveChatHistory',msg);
+		this.props.psocket.on('confirmStickyTasks', (task)=>{
+			this.setState({task:task});
+			const tasklists = <Tasks handleChecked={this.handleChecked.bind(this)} task={this.state.task} addTask={this.addTask}/>
+			this.setState({response:tasklists, sn:true});
+			// console.log('task state on socket -----> ',this.state.task);
+		});
 	}
     componentDidUpdate(){
         this.scrollToBottom();
@@ -75,13 +88,46 @@ scrollToBottom() {
 		this.props.psocket.emit('receiveChatHistory',msg);
 	}
 
+	// Task functionality START ---------->
+	addTask(val){
+    var lists = this.state.task;
+    var obj = {task:val,checked:false}
+    lists.push(obj);
+    this.setState({task:lists});
+  }
+  handleChecked(i){
+    var lists = this.state.task;
+    var obj = lists[i];
+    obj.checked = !obj.checked;
+    console.log(obj);
+    lists.splice(i,1,obj);
+    this.setState({task: lists})
+  }
 
+	handleOpen(){
+		this.setState({sn: true});
+
+	};
+  handleClose(){
+		this.props.psocket.emit('taskArray', this.props.channelId, this.state.task);
+    this.setState({sn: false, task:[]});
+		console.log('task state emit socket -----> ', this.state.task);
+  };
+	// Task functionality END ---------->
 
 
 	render() {
 		//console.log("this is chatHistory channelid ",this.props.channelId);
 		//console.log(this.props.chatHistory);
 
+
+		const actions = [
+			<FlatButton
+				label="OK"
+				keyboardFocused={true}
+				onTouchTap={this.handleClose}
+			/>
+		];
 		let lem;
 		let showbooklist;
 		if(this.state.historyEnded)
@@ -101,6 +147,23 @@ scrollToBottom() {
            </Card>
 		</Col></Row>);
 		}
+		else if (this.state.sn) {
+			return(
+				<div>
+				<Dialog
+					title="Tasks"
+					actions={actions}
+					modal={false}
+					open={this.state.sn}
+					onRequestClose={this.handleClose}
+				>
+
+						<ListItem primaryText={this.state.response}/>
+
+				</Dialog>
+			</div>
+			);
+		}
 		else{
 		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
 		<Card>
@@ -111,7 +174,7 @@ scrollToBottom() {
         </Card>
       </Col></Row>);
 	}
-	
+
 });
 return (
 
@@ -125,4 +188,3 @@ return (
 		);
 	}
 }
-

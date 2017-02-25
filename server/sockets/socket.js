@@ -7,7 +7,8 @@ let async = require('async');
 let ajax = require('superagent');
 let UserInfo = require('./../model/userinfo.schema.js');
 let LatList = require('./../model/lat.schema.js'),
-    Feedback = require('./../model/feedback.schema.js');
+    Feedback = require('./../model/feedback.schema.js'),
+    Tasks = require('./../model/tasks.schema.js');
 const ChannelInfo = require('./../model/channelinfo.schema.js');
 let GoogleAToken = require('./../model/googleatoken.schema.js');
 let bookmarkData=require('./../model/bookmarkSchema.js');
@@ -22,7 +23,7 @@ let google = require('googleapis')
   , OAuth2 = google.auth.OAuth2
   , clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com'
   , clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr'
-  , redirect = 'http://bob.blr.stackroute.in/oauth2callback'
+  , redirect = 'http://localhost:8000/oauth2callback'
   , oauth2Client = new OAuth2(clientId, clientSecret, redirect);
 
 
@@ -48,6 +49,14 @@ module.exports = function(io, socket) {
     socket.on('remainderAccepted', tokenSearch);
     socket.on('saveBookmarks',saveBookmarks);
     socket.on('deleteBookmarks',deleteBookmarks);
+    socket.on('taskArray', saveTaskArray);
+
+
+    function saveTaskArray(channelName, tasks){
+      Tasks.update({channelName:channelName},{$set:{tasks: tasks}}, {upsert: true}, function(err, reply){
+        console.log('Task saved : ', reply);
+      });
+    }
 
     function deleteBookmarks(booklist,userName,channelID)
     {
@@ -282,23 +291,44 @@ module.exports = function(io, socket) {
           , location='';
         ajax.get(url).end((error,response)=>{
           if(response){
-            if(response.body.entities.length>=2){
-              if(response.body.entities[0].type==="meeting::summary"){
-                summary = response.body.entities[0].entity;
+            //Add Reminder START ---------->
+            if(response.body.topScoringIntent.intent === "Add Reminder"){
+              if(response.body.entities.length>=1){
+                if (response.body.entities[0].type==="builtin.datetime.date") {
+                  summary='',location='';
+                }
+                else if(response.body.entities[0].type==="meeting::summary"){
+                  summary = response.body.entities[0].entity;
+                }
+                else if (response.body.entities[0].type==="meeting::location") {
+                  location = response.body.entities[0].entity;
+                }
+                else if (response.body.entities[1].type==="meeting::summary") {
+                  summary = response.body.entities[1].entity;
+                }
+                else if(response.body.entities[1].type==="meeting::location"){
+                  location = response.body.entities[1].entity;
+                }
+                socket.emit('confirmSetRemainder', response.body.dialog.status.toUpperCase(), summary, location);
               }
-              else if (response.body.entities[0].type==="meeting::location") {
-                location = response.body.entities[0].entity;
-              }
-              else if (response.body.entities[1].type==="meeting::summary") {
-                summary = response.body.entities[1].entity;
-              }
-              else if(response.body.entities[1].type==="meeting::location"){
-                location = response.body.entities[1].entity;
-              }
-              socket.emit('confirmSetRemainder', response.body.dialog.status.toUpperCase(), summary, location);
             }
-            else {
+            //Add Reminder END ---------->
+
+            //Tasks START ---------->
+            else if(response.body.topScoringIntent.intent === "show task"){
+              Tasks.findOne({channelName: channelID}, function(err, reply){
+                let task=[];
+                if (reply!==null) {
+                  console.log('tasks : ',reply.tasks);
+                  socket.emit('confirmStickyTasks', reply.tasks);
+                }
+                else {
+                  console.log('empty task array');
+                  socket.emit('confirmStickyTasks', task);
+                }
+              });
             }
+            //Tasks END ---------->
           }
         });
     }
@@ -437,23 +467,23 @@ module.exports = function(io, socket) {
                     //console.log(avatars);
                      callback();
                   })
-                 
+
               },function(err){
                 //console.log(channelList,unreadCount,lat,currentChannelName,avatars);
               socket.emit('channelList', channelList, unreadCount, lat,currentChannelName,avatars);
             })
             })
-            
+
            // function getAvatars(callback){
-             
+
             //}
             // async.waterfall([getAvatars],function(err,reply){
             //   console.log(avatars,"Login");
-              
+
             // })
                 //client.lpush("###"+usrname,socket);
                 //console.log("Login",avatars);
-                
+
             });
           });
 
@@ -462,7 +492,7 @@ module.exports = function(io, socket) {
 
     socket.on('currentChannel', function(currentChannel, prevChannel, userName) {
       let avatars={}
-     
+
         currentChannelName = currentChannel;
         let d = new Date();
         unreadCount[prevChannel] = 0;
@@ -491,9 +521,9 @@ module.exports = function(io, socket) {
 
         })
       })
-        
+
         //console.log(avatars);
-        
+
     });
 
     socket.on("getProjectName",function(userName){
@@ -524,8 +554,8 @@ module.exports = function(io, socket) {
                 socket.emit("takeProjectList",projects,users);
             })
             })
-            
-           
+
+
 
 
     })
@@ -597,7 +627,7 @@ module.exports = function(io, socket) {
             let a = "lat." + pn;
             var obj = {};
             obj[a] = new Date();
-            LatList.update({ username:member}, { $set: obj }, function(err, reply) { 
+            LatList.update({ username:member}, { $set: obj }, function(err, reply) {
             })
           });
                    })
@@ -690,7 +720,7 @@ module.exports = function(io, socket) {
         })
        })
     }
-       
+
         else{
             UserInfo.findOneAndUpdate({username:userName},{$push:{channelList:projectName+"#general"}},function(err,reply){
                 UserInfo.findOneAndUpdate({username:userName},{$set:{currentChannel:projectName+"#general"}},function(err,reply){
