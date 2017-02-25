@@ -36,12 +36,12 @@ export default class LayoutComponent extends Component {
             position: 'bottom',
             noOverlay: false
            }
-   
+
         this.closeDrawer = this.closeDrawer.bind(this);
         this.onDrawerClose = this.onDrawerClose.bind(this);
         }
 
-  toggleDrawer(tileId,msgList) { 
+  toggleDrawer(tileId,msgList) {
 
     console.log("this is inside toggleDrawer,",this.state.openDrawer);
     if(msgList.length!==0)
@@ -78,7 +78,7 @@ export default class LayoutComponent extends Component {
                    else
                     console.log("An error in server saving layout");
                 });
-        
+
   }
   componentWillMount(){
       let that = this;
@@ -91,7 +91,7 @@ export default class LayoutComponent extends Component {
                     that.setState({layout:parsed_res.data});
                 });
 
-        
+
   }
   componentDidMount(){
     this.context.socket.emit("login",this.state.userId,cookie.load('projectName'));
@@ -114,7 +114,7 @@ export default class LayoutComponent extends Component {
                              });
                    }
                 });
- 
+
   }
 
   deleteTile(tileId){
@@ -145,7 +145,7 @@ export default class LayoutComponent extends Component {
          return false;
       });
 
-      tile_list = tile_list.map((item,i)=>{ 
+      tile_list = tile_list.map((item,i)=>{
          return (<div key={item.i}><Tile userId={this.state.userId}
                  psocket={this.context.socket} tileId = {item.i}
                   handleDelete={this.deleteTile.bind(this,item.i)}
@@ -153,16 +153,16 @@ export default class LayoutComponent extends Component {
                   />
                   </div>);
       });
-  
+
       return (
             <MuiThemeProvider>
             <Paper>
-            <ReactGridLayout className="layout" onLayoutChange={this.saveLayout.bind(this)} layout={this.state.layout} cols={10} width={1200} rowHeight={60}>
-                        
-            <div key = {"add_tile"}><AddTile  passfunc = {this.addTile.bind(this)} /></div>
+            <ReactGridLayout style={{height:'100%'}} className="layout" onLayoutChange={this.saveLayout.bind(this)} layout={this.state.layout} cols={10} width={1200} rowHeight={70}>
 
-            {tile_list} 
-            
+            <div key = {"add_tile"} style={{height:'500%'}} ><AddTile  passfunc = {this.addTile.bind(this)} /></div>
+
+            {tile_list}
+
             </ReactGridLayout>
             <div>
               <ReactDrawer
@@ -175,7 +175,7 @@ export default class LayoutComponent extends Component {
                   userId={this.state.userId} psocket={this.context.socket}/>
               </ReactDrawer>
             </div>
-            
+
              <Snackbar
               open={this.state.openSnackbar}
               message="No Messages to View"
@@ -192,9 +192,9 @@ export default class LayoutComponent extends Component {
       return (
             <MuiThemeProvider>
               <Paper>
-                <center>              
+                <center>
                   <CircularProgress size={120} thickness={5} />
-                </center>      
+                </center>
               </Paper>
             </MuiThemeProvider>
       );

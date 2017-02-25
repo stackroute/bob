@@ -9,6 +9,8 @@ import IconButton from 'material-ui/IconButton';
 import RaisedButton from 'material-ui/RaisedButton';
 import React from 'react';
 import TextField from 'material-ui/TextField';
+import Paper from 'material-ui/Paper';
+import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 
 import ClearAll from 'material-ui/svg-icons/communication/clear-all'
 import ContentAdd from 'material-ui/svg-icons/content/add';
@@ -25,9 +27,9 @@ import SwipeableViews from 'react-swipeable-views';
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
 export default class Tile extends React.Component{
-	
+
 	constructor(props){
-		super(props);		
+		super(props);
 		this.state={
 			msgList:[],
 			dialogOpen:false,
@@ -81,26 +83,26 @@ export default class Tile extends React.Component{
 				console.log("this is inside handler");
 			this.handleTakeMessage(channelID,msg);
 		});
-	    
+
 	}
 
 	handleTakeMessage(channelId,msg){  //handle an incoming message from redis channel
 		console.log("channel name: ",channelId,"message: ",msg);
 		if(this.state.filters.channels.includes(channelId)){
 			if(msg.hasOwnProperty('typer')||msg.sender===this.props.userId){
-				
+
 			}
-			else 
+			else
 			{
 				msg = this.handleTime(msg);
-				msg.channelId = channelId;	
-				this.setState((prevState,props)=>{ 
-						prevState.msgList.push(msg); 
+				msg.channelId = channelId;
+				this.setState((prevState,props)=>{
+						prevState.msgList.push(msg);
 						return {msgList:prevState.msgList};
 				});
 			}
 		}
-		
+
 	}
 
 	handleEdit(){ //get data for configuring tile and opne tile
@@ -155,8 +157,8 @@ export default class Tile extends React.Component{
      		this.setState((prevState,props)=>{
 	    		let index = prevState.filters.tags.indexOf(filter);
  			   	if(index>-1)
-        			prevState.filters.tags.splice(index,1); 
-       			return {filters:prevState.filters};     
+        			prevState.filters.tags.splice(index,1);
+       			return {filters:prevState.filters};
      		});
    		}
    		else if(category === "channel"){
@@ -179,7 +181,7 @@ export default class Tile extends React.Component{
 			return item.split('#')[0]===this.state.filterInputs.projectInput;
 		});
 		data = data.map((item,index)=>{
-			return '#'+item.split('#')[1]; 
+			return '#'+item.split('#')[1];
 		});
 		this.setState({filteredChannels:data});
 	}
@@ -204,7 +206,7 @@ export default class Tile extends React.Component{
 
 	handleProjectInput(value){ //handle project input field. set bools for validation
 		console.log("project");
-		let status;	
+		let status;
 		if(this.state.projects.includes(value))
 			status = true;
 		else
@@ -220,7 +222,7 @@ export default class Tile extends React.Component{
 				return {Okay:false};
 		});
 	}
-		
+
 	handleChannelInput(value){  //handle channel input field. set bools for validation.
 		console.log("channel");
 		let status;
@@ -284,12 +286,12 @@ export default class Tile extends React.Component{
 			.send(this.state.filters)
 			.end(function(err,res){
 					console.log("result of save ",res.text);
-					
+
 			});
 		this.handleClose.bind(this)();
 	}
 
-	
+
 
 
 	handleClear(){  //clear the tile notifications.
@@ -299,11 +301,11 @@ export default class Tile extends React.Component{
 			.send({lastCleared:new Date()})
 			.end(function(err,res){
 					console.log("result of save ",res.text);
-					
+
 			});
 	}
 
-	handleViewAllWrapper(){		
+	handleViewAllWrapper(){
 		this.props.handleViewAll(this.state.msgList);
 	}
 
@@ -313,7 +315,7 @@ export default class Tile extends React.Component{
 		//below dialog is the configuration tile dialog.
 		let dialog= (<div><Dialog open={this.state.dialogOpen} onRequestClose={this.handleClose.bind(this)}
 						title="Change Tile Settings"
-					>			
+					>
 						<AutoComplete hintText="Enter the project" onUpdateInput={this.handleProjectInput.bind(this)}
 							value ={this.state.filterInputs.projectInput} errorText="Enter a project that you are part of."
 							onBlur={this.computeChannels.bind(this)} dataSource={this.state.projects}
@@ -328,7 +330,7 @@ export default class Tile extends React.Component{
 						<RaisedButton disabled= {!this.state.Okay} label="ADD" primary={true}
 							onClick={this.handleAdd.bind(this)}
 						/>
-						<RaisedButton  label="SAVE" primary={true} 
+						<RaisedButton  label="SAVE" primary={true}
 							onClick={this.handleSave.bind(this)}
 						/>
 						<CurrentFilter filters={this.state.filters}
@@ -341,12 +343,13 @@ export default class Tile extends React.Component{
 		let notification_badge; //the notification icon with badge.
 
 		if(this.state.msgList.length>0)
-		    notification_badge= (<div><Badge
+		    notification_badge= (<div><IconButton tooltip="Notifications"  tooltipPosition="bottom-right"><Badge
 		               				badgeContent={this.state.msgList.length}
 		               				primary={true}
 		               			>
 		               				<NotificationsIcon />
 		               			</Badge>
+												</IconButton>
 		               			</div>
 		               			);
 		else
@@ -357,18 +360,30 @@ export default class Tile extends React.Component{
 		let pop;   //this is onmouseenter to show icons on tiles.
 		if(this.state.stop)
 			pop = (<div>
+				<Grid  style={{ width:"100%"}}>
+			<Row style={{width:"100%"}}>
+					<Col xs={3} sm={3} md={3} lg={3} style={{height:'100%'}}>
 						<IconButton tooltip="Settings"  onClick={this.handleEdit.bind(this)} >
 		                    	<SettingsIcon  />
-		                    </IconButton> 
+		                    </IconButton>
+											</Col>
+											<Col xs={3} sm={3} md={3} lg={3} style={{height:'100%'}}>
 		                    <IconButton tooltip="Delete Forever" onClick={this.props.handleDelete}>
 		                		<DeleteIcon />
 		               		</IconButton>
+										</Col>
+											<Col xs={3} sm={3} md={3} lg={3} style={{height:'100%'}}>
 		               		   <IconButton tooltip="Clear Notifications" onClick={this.handleClear.bind(this)}>
 		                		<ClearAll />
 		               		</IconButton>
+										</Col>
+											<Col xs={3} sm={3} md={3} lg={3} style={{height:'100%'}}>
 		               		<IconButton tooltip="View all" onClick={this.handleViewAllWrapper.bind(this)}>
 		                		<ViewStream />
 		               		</IconButton>
+										</Col>
+									</Row>
+									</Grid>
 		               		{notification_badge}
 		           </div>
 			);
@@ -376,20 +391,22 @@ export default class Tile extends React.Component{
 			pop = null;
 
 		if(this.state.msgList.length===0){
-			return (<div onMouseEnter={()=>{this.setState({stop:true});}} 
+			return (<div onMouseEnter={()=>{this.setState({stop:true});}}
 						onMouseLeave={()=>{this.setState({stop:false});}}>
-						{dialog}						
-						<Card >						
-		                	<CardText >
+						{dialog}
+						<Paper style={{width:'96%',}} zDepth={3} >
+						<Card style={{background:'#ff9800',margin: 0}}>
+		                	<CardText style={{background:'#e3f2fd',height: 60}}>
 		                		"No Notifications to Display"
 		                	</CardText>
-		                 	<CardMedia overlay={pop} >
+		                 	<CardMedia overlayContentStyle={{background:'#e3f2fd'}} style={{position:'relative',marginTop:0}} overlay={pop} >
 		                 	</CardMedia>
 		                </Card>
+										</Paper>
 		            </div>);
 		}
 		else{
-			return (<div >	
+			return (<div >
 						{dialog}
 						<AutoPlaySwipeableViews autoplay={!this.state.stop}
 						 onMouseEnter={()=>{this.setState({stop:true});}}
@@ -397,20 +414,22 @@ export default class Tile extends React.Component{
 		                {
 		                	this.state.msgList.map((details, i) => {
 		                		return (
-		                			    <div key={i}>
-		                			    <Card >
-		               				   
-		               				        <CardHeader title={details.channelId.split("#")[0]+"/"
+		                			    <div key={i} tyle={{width:'100%'}}	containerStyle={{tableLayout:'fixed',wordWrap:'break-word'}}>
+																<Paper style={{width:'98%',overflow:'hidden'}} zDepth={5} >
+		                			      <Card style={{background:'#ff9800',margin: 0}}>
+
+		               				        <CardHeader style={{background:'#ff9800',fontWeight:600}} titleStyle={{tableLayout:'fixed',wordWrap:'break-word'}} title={details.channelId.split("#")[0]+"/"
 		               				        	+details.channelId.split("#")[1]+"/"
 		               					        +details.sender}  subtitle = {details.TimeStamp}
-		               					    >  
+		               					    >
 		               				        </CardHeader>
-		               				        <CardText>
+		               				        <CardText style={{background:'#e3f2fd',height:140,tableLayout:'fixed',wordWrap:'break-word'}}>
 		               				        	{details.msg}
 		               				        </CardText>
-		               				        <CardMedia overlay={pop} >
+		               				        <CardMedia style={{position:'relative',marginTop:0}} overlayContentStyle={{background:'#e3f2fd'}} overlay={pop} >
 		               				        </CardMedia>
 		                				</Card>
+														</Paper>
 		                				</div>);
 		                	})
 		                }
@@ -418,6 +437,6 @@ export default class Tile extends React.Component{
 		            </div>
 		    );
 		}
-	}	
-		
+	}
+
 }

@@ -138,13 +138,13 @@ scrollToBottom() {
 
 		let messageList = this.props.chatHistory.map((message,i)=>{
 			if(this.props.username !== message.sender){
-			return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
+			return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",maxWidth:'80%'}}>
 			<Card>
-		<CardHeader title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
+		<CardHeader style={cardtitle} title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
 
-			<CardTitle title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-      uncheckedIcon={<ActionFavoriteBorder />}/>}>
-      </CardTitle>
+			<CardText style={cardtext} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+      uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
+		</CardText>
            </Card>
 		</Col></Row>);
 		}
@@ -166,12 +166,12 @@ scrollToBottom() {
 			);
 		}
 		else{
-		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
+		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",,maxWidth:'80%'}}>
 		<Card>
-		<CardHeader title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
-		<CardTitle title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-      uncheckedIcon={<ActionFavoriteBorder />}/>}>
-      </CardTitle>
+		<CardHeader style={cardtitle} title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
+		<CardText title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+      uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
+		</CardText>
         </Card>
       </Col></Row>);
 	}
