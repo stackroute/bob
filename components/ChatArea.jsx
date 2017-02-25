@@ -44,24 +44,24 @@ export default class Chat extends React.Component{
 	    this.handleNewRequest=this.handleNewRequest.bind(this);
 	    this.handleSubmit=this.handleSubmit.bind(this);
 	    this.handleLeave=this.handleLeave.bind(this);
-            this.handleSelect=this.handleSelect.bind(this);
+      this.handleSelect=this.handleSelect.bind(this);
 
 	}
-	
-	componentDidMount() {	
+
+	componentDidMount() {
 
 		socket.on('someoneAdded',(name)=>{ //Sent when a user subscribes to the channel.
 			this.handleSomeoneAdded(name);
 		});
-		
+
 		socket.on('takeMessage',(channelID,msg)=>{ //Sent from socket server when a message is published in the redis channel.
 			this.handleTakeMessage(channelID,msg);
 		});
 
-		socket.on('chatHistory',(msg,next)=>{ //msg is an array of objects having messages from a page in mongodb. 
+		socket.on('chatHistory',(msg,next)=>{ //msg is an array of objects having messages from a page in mongodb.
 			this.handleChatHistory(msg,next);
 			});
-		// socket.on('typing',(name)=>{ 
+		// socket.on('typing',(name)=>{
 		// 		this.handleTyping(name);
 		// 	});
 		socket.on('pempty',(msg)=>{
@@ -79,7 +79,7 @@ export default class Chat extends React.Component{
 		});
 
 		socket.emit('bookmarkHistory',this.props.userName,this.props.channelID);
-		
+
 	}
 
 	componentWillReceiveProps(nextProps){
@@ -89,12 +89,12 @@ export default class Chat extends React.Component{
 			let msg = {"pageNo":"initial_primary","channelName":nextProps.channelID};//increment the pages displayed currently.
 			nextProps.socket.emit('receiveChatHistory',msg);
 			this.setState({chatHistory:[]});
-			
+
 		}
 	}
 
 	handleSomeoneAdded(msg){
-		//currently empty. 
+		//currently empty.
 	}
 
 	handleTakeMessage(channelId,msg){
@@ -105,12 +105,12 @@ export default class Chat extends React.Component{
 				this.handleTyping(msg.typer);
 			}
 
-			else 
+			else
 			{
 				//console.log(msg);
 				msg = this.handleTime(msg);
-				this.setState((prevState,props)=>{ 
-						prevState.chatHistory.push(msg); 
+				this.setState((prevState,props)=>{
+						prevState.chatHistory.push(msg);
 						return {chatHistory:prevState.chatHistory};
 				});
 			}
@@ -128,7 +128,7 @@ export default class Chat extends React.Component{
 		msg.forEach((msgob)=>{
 
 			msgob = this.handleTime(msgob);
-			mess.unshift(msgob); 
+			mess.unshift(msgob);
 		});
 		this.setState((prevState,props)=>{ return {chatHistory:mess,pagesDisplayed:prevState.pagesDisplayed+1,next:next};});
 	}
@@ -178,7 +178,7 @@ export default class Chat extends React.Component{
 		let a=this.props.channelID.split("#");
 		request.get("http://bob.blr.stackroute.in/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
 			res=JSON.parse(res.text);
-			this.setState({membersList:res.data,addOpen:true});	
+			this.setState({membersList:res.data,addOpen:true});
 				})
 	}
 
@@ -245,6 +245,7 @@ export default class Chat extends React.Component{
 
  	 }
 
+
 	render(){
 		console.log(this.state.members,"Inside Chat");
 		let typ;
@@ -257,7 +258,7 @@ export default class Chat extends React.Component{
 		else if(this.state.typing.length>1)
 			{
 				typ = <Chip>{this.state.typing.slice(0,5) + " and others are typing"}</Chip>
-				
+
 			}
 		else
 			{
@@ -324,7 +325,7 @@ return(
 							</Row>
 							<Row bottom="lg" style={{height:"10%",width:'100%'}}>
 								<Col xs={12} sm={12} md={12} lg={12}>
-									<NewMessage channelId={this.props.channelID} psocket={socket} name={this.props.userName}/>
+									<NewMessage channelId={this.props.channelID} psocket={socket} name={this.props.userName} />
 								</Col>
 							</Row>
 						</Grid>

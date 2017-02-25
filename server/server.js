@@ -79,7 +79,7 @@ app.get('/dashboard', function(req, res) {
         accessToken = access_token;
         console.log("AccessToken: " + accessToken + "\n");
         request.get("https://api.github.com/user?access_token=" + accessToken).end((err, response) => {
-            
+
             var payload = response.body.login;
             var avatar = response.body.avatar_url;
             //console.log(avatar);
