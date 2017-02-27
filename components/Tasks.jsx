@@ -3,6 +3,8 @@ import Paper from 'material-ui/Paper';
 import TextField from 'material-ui/TextField';
 import {List, ListItem} from 'material-ui/List';
 import Subheader from 'material-ui/Subheader';
+import IconButton from 'material-ui/IconButton';
+import DeleteForever from 'material-ui/svg-icons/action/delete-forever';
 import Checkbox from 'material-ui/Checkbox';
 export default class Tasks extends Component{
   constructor(props){
@@ -27,7 +29,7 @@ export default class Tasks extends Component{
       }
       return(
         <div key={i}>
-        <ListItem style={style} leftCheckbox={<Checkbox checked={item.checked} onCheck={this.props.handleChecked.bind(this,i)}/>} primaryText={item.task}/>
+        <ListItem style={style} leftCheckbox={<Checkbox checked={item.checked} onCheck={this.props.handleChecked.bind(this,i)}/>} primaryText={item.task} rightIcon={<IconButton onClick={this.props.handleTaskDelete.bind(this,i)}><DeleteForever /></IconButton>}/>
         </div>
         );
     });
@@ -42,7 +44,7 @@ export default class Tasks extends Component{
               <Subheader> Tasklists </Subheader>
               {tasks}
             </List>
-       
+
        </div>
     );
   }

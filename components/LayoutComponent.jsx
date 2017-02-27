@@ -161,8 +161,7 @@ export default class LayoutComponent extends Component {
 
             <div key = {"add_tile"} style={{height:'500%'}} ><AddTile  passfunc = {this.addTile.bind(this)} /></div>
 
-            {tile_list}
-
+          {tile_list}
             </ReactGridLayout>
             <div>
               <ReactDrawer

@@ -1,6 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var client = require('./../connections/redisclient.js');
+var request = require('superagent-relative');
 var mongoose = require('mongoose');
 const db = require('./../connections/dbconnect.js');
 const Tiles = require('./../model/tile.schema.js');
@@ -150,9 +151,6 @@ router.post('/users/:userId/channels', function(req, res) { //give userId, toId,
             });
         }
     });
-
-
-
 });
 
 router.post('/user/:userId/project/', function(req, res) {
@@ -161,7 +159,11 @@ router.post('/user/:userId/project/', function(req, res) {
     let projectName = req.body.projectName;
     let avatar = req.body.avatar;
     console.log(userName, projectName, avatar, "start of joining channel");
-
+     let repositary=[];
+      request.get("https://api.github.com/users/"+userName+"/repos").end((err,res)=>{
+      res.body.map((repos,i)=>{
+    repositary.push(repos.name);
+  })
     Channels.find({ channelName: projectName + "#general" }, function(error, rep) {
       console.log("this is inside project join",rep);
         if (rep === undefined || rep.length === 0) {
@@ -177,7 +179,9 @@ router.post('/user/:userId/project/', function(req, res) {
                         username: userName,
                         channelList: a,
                         currentChannel: projectName + "#general",
-                        avatar: avatar
+                        avatar: avatar,
+                        repos:repositary,
+                        gitChannelStatus:false
                     });
                     user.save(function(err, reply) {
                         let pn = projectName + "#general";
@@ -219,20 +223,12 @@ router.post('/user/:userId/project/', function(req, res) {
                                 })
                             })
                         })
-
-
                     })
-
                 }
             })
         }
-
-
     });
-
-
-
-
+  });
 });
 
 module.exports = router;

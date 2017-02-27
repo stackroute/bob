@@ -1,7 +1,8 @@
 const express = require('express')
     , router = express.Router()
     , request = require('superagent')
-    , JWT = require('jsonwebtoken');
+    , JWT = require('jsonwebtoken')
+    , bodyParser = require('body-parser');
 
 var oauth = require("oauth").OAuth2
   , OAuth2 = new oauth("1b4daad08bbe4298d833", "77c98e8f0cd39fb6524ca4b8a720e8bb52a2afa7", "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
@@ -9,10 +10,30 @@ var oauth = require("oauth").OAuth2
 //models
 var LatList = require('./../model/lat.schema.js')
   , UserInfo = require('./../model/userinfo.schema.js')
-  , ChannelInfo = require('./../model/channelinfo.schema.js');
+  , ChannelInfo = require('./../model/channelinfo.schema.js')
+  , GitChannel = require('./../model/gitchannel.schema.js');
 //global variables
 var token
-  , accessToken;
+  , accessToken
+  , userName;
+
+router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.json());
+
+router.post('/hooks',function(req,res){
+ // console.log("Hooks",req.body);
+ console.log(req.body.head_commit.message,req.body.head_commit.timestamp,req.body.head_commit.url,req.body.head_commit.author.username,req.body.repository.name);
+  let message={};
+      message["author_name"]=req.body.head_commit.author.username;
+      message["repo_name"]=req.body.repository.name;
+      message["message"]=req.body.head_commit.message;
+      message["timestamp"]=req.body.head_commit.timestamp;
+      message["url"]=req.body.head_commit.url;
+  GitChannel.update({userName:req.body.repository.owner.name},{$push:{message:message}},{upsert:true},function(err,res){
+
+  })
+  res.send("Received");
+})
 
 router.get('/dashboard', function(req, res) {
     var code = req.query.code;
@@ -47,10 +68,31 @@ router.get('/dashboard', function(req, res) {
                     var currentChannel = reply[0].currentChannel;
                     res.redirect("http://bob.blr.stackroute.in/#/bob");
                 }
-            })
-
-        })
-
-    })
-})
+            });
+        });
+    });
+});
+router.post('/gitChannel/:repos',function(req,res){
+  //console.log(req.params.repos,"Got Request");
+  var repos_names=req.params.repos.split(",");
+  console.log(userName,accessToken,repos_names);
+  //console.log(repos_names);
+  repos_names.map((repo,i)=>{
+    request.post("https://api.github.com/repos/"+userName+"/"+repo+"/hooks?access_token="+accessToken).send(
+      {
+        "name": "web",
+        "active": true,
+        "events": [
+          "push",
+          "pull_request"
+        ],
+        "config": {
+          "url": "http://bob.blr.stackroute.in/hooks",
+          "content_type": "json"
+        }
+      }).end((req,res)=>{
+        console.log("Success-----Hooks Response");
+      });
+  });
+});
 module.exports = router;

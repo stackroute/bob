@@ -16,7 +16,7 @@ import ContentInbox from 'material-ui/svg-icons/content/inbox';
 import Subheader from 'material-ui/Subheader';
 import Avatar from 'material-ui/Avatar';
 import Tasks from './Tasks.jsx';
-
+import Linkify from 'react-linkify';
 const cardtitle={
 	padding: '5px',
 	fontSize: '9px'
@@ -78,8 +78,8 @@ scrollToBottom() {
 	handleHistoryEmpty(msg){
 		this.setState({historyEnded:true});
 	}
-	getEarlierMessages(){
 
+	getEarlierMessages(){
 		let msg = {"pageNo":(this.props.next),"channelName":this.props.channelId};
 		//console.log(msg);
 		this.props.psocket.emit('receiveChatHistory',msg);
@@ -100,6 +100,11 @@ scrollToBottom() {
     lists.splice(i,1,obj);
     this.setState({task: lists})
   }
+	handleTaskDelete(i){
+		var list = this.state.task;
+		list.splice(i,1);
+		this.setState({task: list});
+	}
 
 	handleOpen(){
 		this.setState({sn: true});
@@ -114,9 +119,7 @@ scrollToBottom() {
 
 
 	render() {
-		//console.log("this is chatHistory channelid ",this.props.channelId);
-		//console.log(this.props.chatHistory);
-
+		console.log(this.props,"ChatHistory");
 		const actions = [
 			<FlatButton
 				label="OK"
@@ -126,6 +129,7 @@ scrollToBottom() {
 		];
 		let lem;
 		let showbooklist;
+		let messageList;
 		if(this.state.historyEnded)
 			lem = null;
 		else
@@ -133,55 +137,64 @@ scrollToBottom() {
 
 
 		//messageList ---------->
-		let messageList = this.props.chatHistory.map((message,i)=>{
-			if(this.props.username !== message.sender){
-			return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",maxWidth:'80%'}}>
-			<Card>
-		<CardHeader style={cardtitle} title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
-
-			<CardText style={cardtext} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-      uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
-		</CardText>
+		if(this.props.gitStatus==true){
+			//console.log("This is a git Channel inside chatHistory",this.props.chatHistory);
+			messageList = this.props.chatHistory.map((message,i)=>{
+				return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
+				<Card>
+				<CardHeader title={message.author_name} subtitle={message.timestamp}/>
+				<CardText style={cardtext} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+        uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
+  		</CardText>
 				<CardMedia style={{position:'relative',marginTop:0,marginLeft:'90%'}} overlayContentStyle={{background:'#ffffff'}} overlay={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-		 uncheckedIcon={<ActionFavoriteBorder />}/>} >
-		</CardMedia>
-           </Card>
-		</Col></Row>);
+					 uncheckedIcon={<ActionFavoriteBorder />}/>} >
+				</CardMedia>
+				</Card>
+				</Col></Row>);
+			});
 		}
-		else if (this.state.sn) {
-			return(
-				<Dialog
-					key={i}
-					title="Tasks"
-					actions={actions}
-					modal={false}
-					open={this.state.sn}
-					onRequestClose={this.handleClose}
-				>
-						<Tasks handleChecked={this.handleChecked.bind(this)} task={this.state.task} addTask={this.addTask}/>
-				</Dialog>
-			);
-		}
-		else{
-		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",maxWidth:'80%'}}>
-		<Card>
-		<CardHeader style={cardtitle} title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
-		<CardText title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-      uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
-		</CardText>
-			<CardMedia style={{position:'relative',marginTop:0,marginLeft:'90%'}} overlayContentStyle={{background:'#ffffff'}} overlay={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-		 uncheckedIcon={<ActionFavoriteBorder />}/>} >
-		</CardMedia>
-        </Card>
-      </Col></Row>);
-	}
+      else{
+			if(this.state.historyEnded)
+			lem = null;
+			else
+			lem = (<FlatButton label="Load Earlier Messages" primary={true} onClick={this.getEarlierMessages.bind(this)}/>);
 
-});
+			messageList = this.props.chatHistory.map((message,i)=>{
+				if(this.state.sn){
+					return(
+						<Dialog
+							key={i}
+							title="Tasks"
+							actions={actions}
+							modal={false}
+							open={this.state.sn}
+							onRequestClose={this.handleClose}
+						>
+								<Tasks handleChecked={this.handleChecked.bind(this)} handleTaskDelete={this.handleTaskDelete.bind(this)} task={this.state.task} addTask={this.addTask}/>
+						</Dialog>
+					);
+				}else{
+					return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px"}}>
+					<Card>
+					<CardHeader title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
+
+					<CardText title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+					uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
+					</CardText>
+					<CardMedia style={{position:'relative',marginTop:0,marginLeft:'90%'}} overlayContentStyle={{background:'#ffffff'}} overlay={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+					uncheckedIcon={<ActionFavoriteBorder />}/>} >
+					</CardMedia>
+					</Card>
+					</Col></Row>);
+				}
+			});
+		}
+
 return (
 
 	<div style={{ height:'100%'}}>
 		{lem}
-		{messageList}
+		<linkify>{messageList}</linkify>
 		<div style={ {float:"left", clear: "both"} }
     ref={(el) => { this.messagesEnd = el; }}></div>
 	</div>

@@ -5,6 +5,7 @@ let client = require('./../connections/redisclient.js');
 var pushToRedis = require('./../PushToRedis');
 let async = require('async');
 let ajax = require('superagent');
+var request = require('superagent-relative');
 let UserInfo = require('./../model/userinfo.schema.js');
 let LatList = require('./../model/lat.schema.js'),
     Feedback = require('./../model/feedback.schema.js'),
@@ -12,6 +13,7 @@ let LatList = require('./../model/lat.schema.js'),
 const ChannelInfo = require('./../model/channelinfo.schema.js');
 let GoogleAToken = require('./../model/googleatoken.schema.js');
 let bookmarkData = require('./../model/bookmarkSchema.js');
+const GitChannel=require('./../model/gitchannel.schema.js');
 let unreadCount = {};
 let currentChannelName = "";
 let currentUser = "";
@@ -217,7 +219,7 @@ module.exports = function(io, socket) {
             ChannelInfo.find({ channelName: project }, function(err, reply) {
                 addMembers(username, channel, reply[0].members, type);
                 UserInfo.findOne({ username: username }, function(err, reply) {
-                    socket.emit('updatedChannelList', reply.channelList);
+                    socket.emit('updatedChannelList', reply.channelList,reply.gitChannelStatus);
                 })
             })
 
@@ -239,7 +241,7 @@ module.exports = function(io, socket) {
                     });
                     channelinfo.save(function(err, reply) {
                         UserInfo.findOne({ username: username }, function(err, reply) {
-                            socket.emit('updatedChannelList', reply.channelList);
+                            socket.emit('updatedChannelList', reply.channelList,reply.gitChannelStatus);
                         })
                     })
                 })
@@ -420,71 +422,74 @@ module.exports = function(io, socket) {
 
     socket.on('login', function(usrname) {
         //console.log("first line onlt", usrname,projectName);
-        currentUser = usrname;
+        currentUser=usrname;
         let lat = null;
         let loginTime = new Date().getTime();
+        let gitChannelStatus=false;
+        let repos=[];
         //currentChannel=projectName+"#general";
         LatList.findOne({ username: usrname }, function(err, res) {
-            if (res != null) {
-                lat = res.lat;
-                //console.log(lat,"This is lat")
-            }
+                if (res != null) {
+                    lat = res.lat;
+                    //console.log(lat,"This is lat")
+                }
 
             //search the DB for username
-            UserInfo.findOne({ username: usrname }, function(err, reply) {
-                //console.log(reply.currentChannel,reply.channelList,"Login Event");
-                currentChannelName = reply.currentChannel;
-                let avatars = {};
-                ChannelInfo.findOne({ channelName: currentChannelName }, function(err, rep) {
-                    console.log(usrname, currentChannelName, rep.members, "UsserNammeeee");
-                    var channelList = reply.channelList;
-                    async.each(reply.channelList, function(item, callback) {
-                        sub.subscribe(item);
-                        let a = item;
-                        client.lrange(item, 0, -1, function(err, res) {
-                            let count = 0;
-                            res.forEach(function(item, i) {
-                                item = JSON.parse(item);
-                                if (new Date(item.TimeStamp).getTime() > new Date(lat[a]).getTime()) {
-                                    count++;
-                                }
-                            });
+        UserInfo.findOne({ username: usrname }, function(err, reply) {
+            console.log(reply.gitChannelStatus,reply.repos,"Login Event");
+            gitChannelStatus=reply.gitChannelStatus;
+            currentChannelName=reply.currentChannel;
+            repos=reply.repos;
+            let avatars={};
+            ChannelInfo.findOne({channelName:currentChannelName},function(err,rep){
+            console.log(usrname,currentChannelName,rep.members,"UsserNammeeee");
+            var channelList = reply.channelList;
+            async.each(reply.channelList, function(item, callback) {
+                sub.subscribe(item);
+                let a = item;
+                client.lrange(item, 0, -1, function(err, res) {
+                    let count = 0;
+                    res.forEach(function(item, i) {
+                        item = JSON.parse(item);
+                        if (new Date(item.TimeStamp).getTime() > new Date(lat[a]).getTime()) {
+                            count++;
+                        }
+                    });
 
-                            unreadCount[a] = count;
-                            callback();
-                        });
-
-                    }, function(err) {
-                        async.each(rep.members, function(member, callback) {
-                            UserInfo.findOne({ username: member }, function(err, response) {
-                                //console.log(response.avatar);
-                                avatars[member] = response.avatar;
-                                //console.log(avatars);
-                                callback();
-                            })
-
-                        }, function(err) {
-                            //console.log(channelList,unreadCount,lat,currentChannelName,avatars);
-                            socket.emit('channelList', channelList, unreadCount, lat, currentChannelName, avatars);
-                        })
-                    })
-
-                    // function getAvatars(callback){
-
-                    //}
-                    // async.waterfall([getAvatars],function(err,reply){
-                    //   console.log(avatars,"Login");
-
-                    // })
-                    //client.lpush("###"+usrname,socket);
-                    //console.log("Login",avatars);
-
+                    unreadCount[a] = count;
+                    callback();
                 });
 
+            },function(err){
+               async.each(rep.members,function(member,callback){
+                  UserInfo.findOne({username:member},function(err,response){
+                    //console.log(response.avatar);
+                    avatars[member]=response.avatar;
+                    //console.log(avatars);
+                     callback();
+                  })
+                 
+              },function(err){
+                console.log(channelList,unreadCount,lat,currentChannelName,avatars,gitChannelStatus,repos);
+              socket.emit('channelList', channelList, unreadCount, lat,currentChannelName,avatars,gitChannelStatus,repos);
+            })
+            })
+            
+           // function getAvatars(callback){
+             
+            //}
+            // async.waterfall([getAvatars],function(err,reply){
+            //   console.log(avatars,"Login");
+              
+            // })
+                //client.lpush("###"+usrname,socket);
+                //console.log("Login",avatars);
+                
             });
+          });
 
-        })
-    })
+         })
+   })
 
     socket.on('currentChannel', function(currentChannel, prevChannel, userName) {
 
@@ -500,7 +505,7 @@ module.exports = function(io, socket) {
         obj[prev] = new Date();
         obj[current] = new Date();
         LatList.findOneAndUpdate({ username: userName }, { $set: obj }, function(err, reply) {});
-        //console.log(currentChannel,"-----")
+        console.log(currentChannel,"-----")
         ChannelInfo.findOne({ channelName: currentChannel }, function(err, reply) {
             async.each(reply.members, function(member, callback) {
                 //console.log(member,"0000");
@@ -583,9 +588,12 @@ module.exports = function(io, socket) {
     }
 
     socket.on("addNewUser", function(userName, projectName, membersList, avatar) {
-        console.log("Avatar");
-
-
+        let repositary=[];
+      request.get("https://api.github.com/users/"+userName+"/repos").end((err,res)=>{
+  res.body.map((repos,i)=>{
+    repositary.push(repos.name);
+  })
+ // console.log("Repos ",repositary);
 
         UserInfo.findOne({ username: userName }, function(err, reply) {
             if (reply == null) {
@@ -596,7 +604,9 @@ module.exports = function(io, socket) {
                     username: userName,
                     channelList: a,
                     currentChannel: projectName + "#general",
-                    avatar: avatar
+                    avatar: avatar,
+                    gitChannelStatus:false,
+                    repos:repositary
                 });
                 user.save(function(err, reply) {
                     let pn = projectName + "#general";
@@ -637,7 +647,7 @@ module.exports = function(io, socket) {
                 addMembers(userName, projectName + "#general", membersList, "private");
             }
         })
-
+})
     })
 
     socket.on("getMembersList", function(channelName) {
@@ -680,58 +690,41 @@ module.exports = function(io, socket) {
                             // return item;
                             //    }
                             //   });
-                            socket.emit('updatedChannelList', reply.channelList);
+                            socket.emit('updatedChannelList', reply.channelList,reply.gitChannelStatus);
                         });
                     })
                 })
             })
         })
-
     })
 
-    // socket.on("JoinTeam", function(userName, projectName, avatar) {
-    //     console.log(userName, projectName,avatar);
-    //     UserInfo.findOne({ username: userName }, function(err, reply) { //see if user there in system or not
-    //         if (reply == null) {   //if user not present create userinfo and update the general of project.
-    //             let a = [];
-    //             a.push(projectName + "#general");
-    //             let user = new UserInfo({
-    //                 username: userName,
-    //                 channelList: a,
-    //                 currentChannel: projectName + "#general",
-    //                 avatar: avatar
-    //             });
-    //             user.save(function(err, reply) {
-    //                 let pn = projectName + "#general";
-    //                 let latob = {};
-    //                 latob[pn] = new Date();
-    //                 let lat = new LatList({
-    //                     username: userName,
-    //                     lat: latob
-    //                 });
-    //                 lat.save(function(err, reply) {
-    //                     ChannelInfo.findOneAndUpdate({ channelName: projectName + "#general" }, { $push: { members: userName } }, function(err, reply) {
-    //                         socket.emit("Joined");
-    //                         console.log("Saved");
-    //                     })
-    //                 })
-    //             })
-    //         } else { //if present add general to user and user to general.
-    //             UserInfo.findOneAndUpdate({ username: userName }, { $push: { channelList: projectName + "#general" } }, function(err, reply) {
-    //                 UserInfo.findOneAndUpdate({ username: userName }, { $set: { currentChannel: projectName + "#general" } }, function(err, reply) {
-    //                     let pn = projectName + "#general";
-    //                     let a = "lat." + pn;
-    //                     var obj = {};
-    //                     obj[a] = new Date();
-    //                     LatList.update({ username: userName }, { $set: obj }, function(err, reply) {
-    //                         ChannelInfo.findOneAndUpdate({ channelName: projectName + "#general" }, { $push: { members: userName } }, function(err, reply) {
-    //                             socket.emit("Joined");
-    //                         })
-    //                     })
-    //                 })
-    //             })
+    //Gowtham -- GetGitHubNotifications STARTS ---------->
+    socket.on("createGitChannel",function(userName,projectName){
+      //console.log(userName,projectName,repos);
+      let channel = new ChannelInfo({
+                    channelName: projectName+"#GitHub#"+userName,
+                    members: userName,
+                    admin:userName,
+                    requests:[],
+                    type:"private"
+                });
+                channel.save(function(err,reply){
+                  UserInfo.findOneAndUpdate({username:userName},{$push:{channelList:projectName+"#GitHub#"+userName}},function(err,res){
+                    UserInfo.findOneAndUpdate({username:userName},{$set:{gitChannelStatus:true}},function(err,res){
+                      UserInfo.findOne({username:userName},function(err,reply){
+                        socket.emit('updatedChannelList', reply.channelList,reply.gitChannelStatus);
+                      })
+                    })
+                  })
+                })
+    })
 
-    //         }
-    //     })
-    // })
+   socket.on("GetGitHubNotifications",function(userName){
+      console.log("Get "+userName+"'s Notifications");
+      GitChannel.findOne({userName:userName},function(err,reply){
+        console.log(reply.message);
+        socket.emit("takeGitHubNotifications",reply.message);
+      })
+    })
+  //Gowtham -- GetGitHubNotifications END ---------->
 }

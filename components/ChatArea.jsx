@@ -1,5 +1,4 @@
 import React from 'react';
-import io from 'socket.io-client';
 import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
 import ChatHistory from './ChatHistory.jsx';
 import NewMessage from './NewMessage.jsx';
@@ -30,65 +29,68 @@ const styles = {
   }
   }
 
-let socket;
 export default class Chat extends React.Component{
 	constructor(props) {
 		super(props);
-		this.state={typing:[],chatHistory:[],pagesDisplayed:0,next:"",searchText:"",members:[],addedMembers:[],openDrawer:false,booklist:[],addOpen:false,membersOpen:false,membersList:[]};
-		socket=this.props.socket;
+		this.state={typing:[],chatHistory:[],pagesDisplayed:0,
+      next:"",searchText:"",members:[],addedMembers:[],
+      openDrawer:false,booklist:[],addOpen:false,membersOpen:false,
+      membersList:[],gitStatus:false};
 		this.handleShowMembers=this.handleShowMembers.bind(this);
 		this.handleMembersClose=this.handleMembersClose.bind(this);
 		this.handleAddMembers=this.handleAddMembers.bind(this);
-	    this.handleClose=this.handleClose.bind(this);
-	    this.handleUpdateInput=this.handleUpdateInput.bind(this);
-	    this.handleNewRequest=this.handleNewRequest.bind(this);
-	    this.handleSubmit=this.handleSubmit.bind(this);
-	    this.handleLeave=this.handleLeave.bind(this);
-      this.handleSelect=this.handleSelect.bind(this);
-
+    this.handleClose=this.handleClose.bind(this);
+    this.handleUpdateInput=this.handleUpdateInput.bind(this);
+    this.handleNewRequest=this.handleNewRequest.bind(this);
+    this.handleSubmit=this.handleSubmit.bind(this);
+    this.handleLeave=this.handleLeave.bind(this);
+    this.handleSelect=this.handleSelect.bind(this);
 	}
 
 	componentDidMount() {
 
-		socket.on('someoneAdded',(name)=>{ //Sent when a user subscribes to the channel.
+		this.props.socket.on('someoneAdded',(name)=>{ //Sent when a user subscribes to the channel.
 			this.handleSomeoneAdded(name);
 		});
 
-		socket.on('takeMessage',(channelID,msg)=>{ //Sent from socket server when a message is published in the redis channel.
+		this.props.socket.on('takeMessage',(channelID,msg)=>{ //Sent from this.props.socket server when a message is published in the redis channel.
 			this.handleTakeMessage(channelID,msg);
 		});
 
-		socket.on('chatHistory',(msg,next)=>{ //msg is an array of objects having messages from a page in mongodb.
+		this.props.socket.on('chatHistory',(msg,next)=>{ //msg is an array of objects having messages from a page in mongodb.
 			this.handleChatHistory(msg,next);
 			});
-		// socket.on('typing',(name)=>{
+		// this.props.socket.on('typing',(name)=>{
 		// 		this.handleTyping(name);
 		// 	});
-		socket.on('pempty',(msg)=>{
+		this.props.socket.on('pempty',(msg)=>{
 			this.handlePempty(msg);
 		});
 
-		socket.on("takeMembersList",(membersList)=>{
+		this.props.socket.on("takeMembersList",(membersList)=>{
 			this.setState({members:membersList,membersOpen:true});
 		})
-		socket.on("receiveBoomarkHistory",(receiveBoomarkHistory)=>{
+		this.props.socket.on("receiveBoomarkHistory",(receiveBoomarkHistory)=>{
 			let a=this.props.channelID;
 			console.log(receiveBoomarkHistory[0].bookmark);
 			//console.log("Received BookMark History",receiveBoomarkHistory[0].bookmark[this.props.channelID][0]);
 			this.setState({booklist:receiveBoomarkHistory[0].bookmark});
 		});
 
-		socket.emit('bookmarkHistory',this.props.userName,this.props.channelID);
+		this.props.socket.emit('bookmarkHistory',this.props.userName,this.props.channelID);
 
+        this.props.socket.on("takeGitHubNotifications",(history)=>{
+            this.setState({chatHistory:history,gitStatus:true});
+            console.log(history);
+        })
 	}
 
 	componentWillReceiveProps(nextProps){
 		//console.log(nextProps,this.props,"cwp chatarea outisde if");
 		if(this.props.channelID!=nextProps.channelID){
-			console.log(nextProps,this.props,"cwp chatarea inside if");
 			let msg = {"pageNo":"initial_primary","channelName":nextProps.channelID};//increment the pages displayed currently.
 			nextProps.socket.emit('receiveChatHistory',msg);
-			this.setState({chatHistory:[]});
+			this.setState({chatHistory:[],gitStatus:false});
 
 		}
 	}
@@ -104,7 +106,7 @@ export default class Chat extends React.Component{
 			if(msg.hasOwnProperty('typer')){
 				this.handleTyping(msg.typer);
 			}
-			else 
+			else
 
 			{
 				//console.log(msg);
@@ -132,7 +134,8 @@ export default class Chat extends React.Component{
 		});
 		this.setState((prevState,props)=>{ return {chatHistory:mess,pagesDisplayed:prevState.pagesDisplayed+1,next:next};});
 	}
-	 handleToggle(){this.setState({openDrawer: !this.state.openDrawer});};
+
+   handleToggle(){this.setState({openDrawer: !this.state.openDrawer});};
 	handleTime(msg){
 		let date=[];
          date[0]= new Date(msg.TimeStamp).getHours();
@@ -162,12 +165,18 @@ export default class Chat extends React.Component{
 			"pageNo":msg,
 			"channelName":this.props.channelId
 		};
-		socket.emit('receiveChatHistory',msg1);
+		if(this.props.channelID.split("#")[1]!="GitHub"){
+		this.props.socket.emit('receiveChatHistory',msg1);
+		}
+		else{
+			console.log("GitHub Channel is Clicked");
+			this.props.socket.emit("GetGitHubNotifications",this.props.userName);
+		}
 	}
 
 	handleShowMembers(event){
 		this.setState({ anchorEl: event.currentTarget});
-		socket.emit("getMembersList",this.props.channelID);
+		this.props.socket.emit("getMembersList",this.props.channelID);
 	}
 
 	handleMembersClose(){
@@ -212,36 +221,33 @@ export default class Chat extends React.Component{
 	}
 
 	handleSubmit(){
-		socket.emit("addMembers",this.props.channelID,this.state.addedMembers);
+		this.props.socket.emit("addMembers",this.props.channelID,this.state.addedMembers);
 		this.setState({addOpen:false});
 	}
 
 	handleLeave(){
-		socket.emit("leaveGroup",this.props.channelID,this.props.userName);
+		this.props.socket.emit("leaveGroup",this.props.channelID,this.props.userName);
 	}
-	handleSelect(book,event,status)
-  {
+	handleSelect(book,event,status){
  		 //this.setState({bookitem:event.target.value});
 
  			 console.log(book,"=======",status);
- 		 if(status)
- 			 {
+ 		 if(status){
  		 console.log("Boooooooooooooooook Iiiiiiiiiiiiiitem     ",this.state.booklist);
  		 this.state.booklist.push(book);
- 		 socket.emit('saveBookmarks',book,this.props.userName,this.props.channelID,);
+ 		 this.props.socket.emit('saveBookmarks',book,this.props.userName,this.props.channelID,);
  		 console.log(this.state.booklist);
 
  			 }
- 			 else
- 			 {
+ 			 else{
  				 var indexno=this.state.booklist.indexOf(book);
  				 console.log("false parttt", indexno);
  				 this.state.booklist.splice(indexno,1);
- 				 socket.emit('deleteBookmarks',book,this.props.userName,this.props.channelID);
+ 				 this.props.socket.emit('deleteBookmarks',book,this.props.userName,this.props.channelID);
  				 console.log(this.state.booklist);
 
  			 }
- 			//socket.emit('bookmarks',this.state.booklist);
+ 			//this.props.socket.emit('bookmarks',this.state.booklist);
 
  	 }
 
@@ -320,12 +326,12 @@ return(
 							</Row>
 							<Row style={{height:'78%',overflowY:'auto',width:"100%"}}>
 								<Col xs={12} sm={12} md={12} lg={12}>
-									<ChatHistory avatars={this.props.avatars} channelId={this.props.channelID} psocket={socket} next={this.state.next} bookmark={this.handleSelect} username={this.props.userName} chatHistory={this.state.chatHistory}/>
+									<ChatHistory gitStatus={this.state.gitStatus} avatars={this.props.avatars} channelId={this.props.channelID} psocket={this.props.socket} next={this.state.next} bookmark={this.handleSelect} username={this.props.userName} chatHistory={this.state.chatHistory}/>
 								</Col>
 							</Row>
 							<Row bottom="lg" style={{height:"10%",width:'100%'}}>
 								<Col xs={12} sm={12} md={12} lg={12}>
-									<NewMessage channelId={this.props.channelID} psocket={socket} name={this.props.userName} />
+									<NewMessage channelId={this.props.channelID} psocket={this.props.socket} name={this.props.userName} />
 								</Col>
 							</Row>
 						</Grid>

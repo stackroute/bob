@@ -134,7 +134,7 @@ handleUpdateInput(searchText){
          console.log("Avatar",a);
          this.state.addUsers.push(userName);
        this.context.socket.emit("addNewUser",userName,this.state.projectName,this.state.addUsers,avatar);
-       window.setTimeout(()=>{hashHistory.push('/bob');},1000);
+       window.setTimeout(()=>{hashHistory.push('/bob');},3000);
    }
 
    handleSlideChange(){
