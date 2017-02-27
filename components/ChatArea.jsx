@@ -278,7 +278,7 @@ export default class Chat extends React.Component{
   }
 return(
 			<center style={{height:"100%",width:"100%"}}>
-				<Paper style={{height:"100%",width:"100%",border: 'solid 1px #d9d9d9'}}>
+				<Paper style={{height:"99%",width:"100%",border: 'solid 1px #d9d9d9'}}>
 						<Grid  style={{height:'100%', width:"100%"}}>
 						<Row style={{ height:'8%',overflow:'hidden',width:"100%",margin:"0px"}}>
 								<Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
