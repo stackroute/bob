@@ -207,7 +207,7 @@ export default class ChannelList extends React.Component{
        <Paper style={{height:'100%',width:"100%"}}>
          <Row style={{width:"100%"}}>
          <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%',width:"100%"}}>
-         <Subheader style={{fontSize:"18px"}}>Channels<IconButton onTouchTap={this.handleAddChannel} style={{marginLeft:"136px"}}><AddCircle/></IconButton></Subheader>
+         <Subheader style={{fontSize:"18px"}}>Channels<IconButton onTouchTap={this.handleAddChannel} style={{marginLeft:"20px"}}><AddCircle/></IconButton></Subheader>
          </Col>
          </Row>
          <Row style={{width:"100%"}}>
