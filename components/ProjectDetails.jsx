@@ -63,7 +63,7 @@ export default class ProjectDetails extends Component {
     this.context.socket.on("takeProjectList",function(projectsList,usersList){
      console.log(usersList);
      console.log("asking channels of ",userName);
-       request.get('http://localhost:8000/user/'+userName+'/channels')
+       request.get('http://bob.blr.stackroute.in/user/'+userName+'/channels')
         .end((err,res)=>{
 
           if(JSON.parse(res.text).result){
@@ -175,7 +175,7 @@ handleUpdateInput(searchText){
 
          //this.context.socket.emit("JoinTeam",userName,this.state.projectName1,avatar);
          request
-          .post('http://localhost:8000/user/'+userName+"/project")
+          .post('http://bob.blr.stackroute.in/user/'+userName+"/project")
           .send({userName:userName,projectName:this.state.projectName1,avatar:avatar})
           .end((err,res)=>{
             if(JSON.parse(res.text).result)
@@ -192,7 +192,7 @@ handleUpdateInput(searchText){
        }
     // console.log(this.state.projectName1);
     // let that=this;
-    // request.patch("http://localhost:8000/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
+    // request.patch("http://bob.blr.stackroute.in/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
     //   if(JSON.parse(reply.text).result==true){
     //     that.setState({request:JSON.parse(reply.text).status});
     //   }

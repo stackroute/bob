@@ -23,7 +23,7 @@ let google = require('googleapis'),
     OAuth2 = google.auth.OAuth2,
     clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com',
     clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr',
-    redirect = 'http://localhost:8000/oauth2callback',
+    redirect = 'http://bob.blr.stackroute.in/oauth2callback',
     oauth2Client = new OAuth2(clientId, clientSecret, redirect);
 
 

@@ -108,7 +108,7 @@ export default class ChannelList extends React.Component{
 
 
     request
-      .post('http://localhost:8000/users/'+ this.props.userName +'/channels')
+      .post('http://bob.blr.stackroute.in/users/'+ this.props.userName +'/channels')
       .send({
             "userId":this.props.userName,
             "toId":this.state.DMDialogInput,

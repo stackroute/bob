@@ -7,7 +7,7 @@ let google = require('googleapis')
   , OAuth2Google = google.auth.OAuth2
   , clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com'
   , clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr'
-  , redirect = 'http://localhost:8000/oauth2callback'
+  , redirect = 'http://bob.blr.stackroute.in/oauth2callback'
   , oauth2Client = new OAuth2Google(clientId, clientSecret, redirect)
   , GoogleAToken = require('./../model/googleatoken.schema.js');
 
@@ -27,7 +27,7 @@ router.get('/oauth2callback', function(req, res) {
     storeToken(obj.username, gtoken);
     gfunction(oauth2Client, obj.username, obj.summary, obj.location, obj.startDate, obj.endDate);
   });
-    res.redirect('http://localhost:8000/#/bob');
+    res.redirect('http://bob.blr.stackroute.in/#/bob');
 });
 
 //function to storeToken in DB ---------->
