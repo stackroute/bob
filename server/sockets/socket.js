@@ -55,6 +55,7 @@ module.exports = function(io, socket) {
       Tasks.update({channelName:channelName},{$set:{tasks: tasks}}, {upsert: true}, function(err, reply){
         console.log('Task saved : ', reply);
       });
+    }
 
 
     function deleteBookmarks(booklist, userName, channelID) {
