@@ -25,7 +25,7 @@ export default class ProjectsList extends Component {
 		})
 		return (
 			<Paper style={{height:"100%",paddingRight:"0px"}}>
-			<Subheader style={{fontSize:"14px"}}>Projects</Subheader>
+			<Subheader style={{fontSize:"18px",height:'9.3%',width:"100%",paddingTop:8}}>Projects</Subheader>
 			 <SelectableList value={this.state.currentChannel}>
 			 {
 			 	projects.map((item,i)=>{
