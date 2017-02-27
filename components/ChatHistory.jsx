@@ -142,6 +142,9 @@ scrollToBottom() {
 			<CardText style={cardtext} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
       uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
 		</CardText>
+				<CardMedia style={{position:'relative',marginTop:0,marginLeft:'90%'}} overlayContentStyle={{background:'#ffffff'}} overlay={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+		 uncheckedIcon={<ActionFavoriteBorder />}/>} >
+		</CardMedia>
            </Card>
 		</Col></Row>);
 		}
@@ -166,6 +169,9 @@ scrollToBottom() {
 		<CardText title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
       uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
 		</CardText>
+			<CardMedia style={{position:'relative',marginTop:0,marginLeft:'90%'}} overlayContentStyle={{background:'#ffffff'}} overlay={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
+		 uncheckedIcon={<ActionFavoriteBorder />}/>} >
+		</CardMedia>
         </Card>
       </Col></Row>);
 	}
