@@ -21,7 +21,7 @@ export default class Header extends React.Component{
 		this.state = {
 					open: false,
 					icons: <Link to={'notification'}><IconButton tooltip="Chat Screen" tooltipPosition="bottom-right" iconStyle={{color:"white"}}><Notifications/></IconButton></Link>,
-					socket:io('http://bob.blr.stackroute.in')
+					socket:io('http://localhost:8000')
 			};
 		this.handleToggle = this.handleToggle.bind(this);
 		this.handleLogOut=this.handleLogOut.bind(this);

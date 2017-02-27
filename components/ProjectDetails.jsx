@@ -40,7 +40,7 @@ export default class ProjectDetails extends Component {
            slideIndex:0,
            projectName1:"",
            nonUserProjects:[],
-           create:false
+           create:true
        }
 
        this.handleProjectChange=this.handleProjectChange.bind(this);
@@ -63,7 +63,7 @@ export default class ProjectDetails extends Component {
     this.context.socket.on("takeProjectList",function(projectsList,usersList){
      console.log(usersList);
      console.log("asking channels of ",userName);
-       request.get('http://bob.blr.stackroute.in/user/'+userName+'/channels')
+       request.get('http://localhost:8000/user/'+userName+'/channels')
         .end((err,res)=>{
 
           if(JSON.parse(res.text).result){
@@ -77,11 +77,11 @@ export default class ProjectDetails extends Component {
                         return !res.data.includes(item);
                       });
                       console.log("these are non up ",data);
-                      
+
                       let index = usersList.indexOf(userName); //remove user from userslist.
                       if(index > -1)
                         usersList.splice(index,1);
-          
+
                       that.setState({nonUserProjects:data,projectsList:projectsList,usersList:usersList});
                     }
           else{
@@ -91,11 +91,11 @@ export default class ProjectDetails extends Component {
 
         });
     })
-    
+
    }
 
 handleUpdateInput(searchText){
-    
+
     this.setState({
       searchText: searchText,
     });
@@ -175,7 +175,7 @@ handleUpdateInput(searchText){
 
          //this.context.socket.emit("JoinTeam",userName,this.state.projectName1,avatar);
          request
-          .post('http://bob.blr.stackroute.in/user/'+userName+"/project")
+          .post('http://localhost:8000/user/'+userName+"/project")
           .send({userName:userName,projectName:this.state.projectName1,avatar:avatar})
           .end((err,res)=>{
             if(JSON.parse(res.text).result)
@@ -192,7 +192,7 @@ handleUpdateInput(searchText){
        }
     // console.log(this.state.projectName1);
     // let that=this;
-    // request.patch("http://bob.blr.stackroute.in/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
+    // request.patch("http://localhost:8000/channels/"+this.state.projectName1+"/user/"+userName).end(function(err,reply){
     //   if(JSON.parse(reply.text).result==true){
     //     that.setState({request:JSON.parse(reply.text).status});
     //   }
@@ -200,7 +200,7 @@ handleUpdateInput(searchText){
 
     //     that.setState({request:JSON.parse(reply.text).status});
     //   }
-      
+
     // })
    }
    render() {
@@ -242,7 +242,7 @@ handleUpdateInput(searchText){
               <RaisedButton label="Create" disabled={!this.state.create}  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/>
            </div>
            </SwipeableViews>
-           
+
            </Paper>
           </Col>
         </Row>

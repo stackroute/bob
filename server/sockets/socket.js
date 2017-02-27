@@ -23,7 +23,7 @@ let google = require('googleapis'),
     OAuth2 = google.auth.OAuth2,
     clientId = '616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com',
     clientSecret = 'h0DIE4B8pncOEtgMfK2t9rcr',
-    redirect = 'http://bob.blr.stackroute.in/oauth2callback',
+    redirect = 'http://localhost:8000/oauth2callback',
     oauth2Client = new OAuth2(clientId, clientSecret, redirect);
 
 
@@ -280,11 +280,12 @@ module.exports = function(io, socket) {
         obj = { 'sender': sender, 'msg': msg, 'TimeStamp': date } //-and if reached put it to mongoDB. Better write this function again.
         pub.publish(channelID, JSON.stringify(obj));
         pushToRedis(channelID, obj);
-        let url = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/976f7fd6-6a76-46c0-9857-6fcc99a99d8b?subscription-key=efd01e4bf7dc443180fcf9145ec03a0b" + "&q=" + msg + "&verbose=true",
+        let url = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/cfab6737-9b9c-4f38-9119-b834418fc8e8?subscription-key=2e2d4fc5300843e4a29b3bc644edad19" + "&q=" + msg + "&verbose=true",
             summary = '',
             location = '';
            ajax.get(url).end((error,response)=>{
           if(response){
+            console.log('inside response');
             //Add Reminder START ---------->
             if(response.body.topScoringIntent.intent === "Add Reminder"){
               if(response.body.entities.length>=1){
@@ -309,7 +310,8 @@ module.exports = function(io, socket) {
             //Add Reminder END ---------->
 
             //Tasks START ---------->
-            else if(response.body.topScoringIntent.intent === "show task"){
+            else if(response.body.topScoringIntent.intent === "showTask"){
+              console.log('inside show task');
               Tasks.findOne({channelName: channelID}, function(err, reply){
                 let task=[];
                 if (reply!==null) {

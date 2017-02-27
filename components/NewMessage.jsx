@@ -147,7 +147,7 @@ export default class NewMessage extends Component {
 			startDate:this.state.startDate,
 			endDate:this.state.endDate
 		}
-		const url='https://accounts.google.com/o/oauth2/auth?redirect_uri=http://bob.blr.stackroute.in/oauth2callback&state='+JSON.stringify(obj)+'&response_type=code&client_id=616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/calendar+https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&approval_prompt=force&access_type=offline';
+		const url='https://accounts.google.com/o/oauth2/auth?redirect_uri=http://localhost:8000/oauth2callback&state='+JSON.stringify(obj)+'&response_type=code&client_id=616007233163-g0rk4o8g107upgrmcuji5a8jpnbkd228.apps.googleusercontent.com&scope=https://www.googleapis.com/auth/calendar+https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile&approval_prompt=force&access_type=offline';
 		const eventurl=this.state.eventurl;
 		const actions = [
 	     <FlatButton
@@ -221,7 +221,7 @@ export default class NewMessage extends Component {
           open={this.state.open2}
           onRequestClose={this.handleClose2}
         >
-         {eventurl}
+         <p> <a href={eventurl} target="_blank">click here</a> to edit in Google Calendar</p>
         </Dialog>
       </div>);
 		}

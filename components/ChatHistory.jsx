@@ -43,8 +43,6 @@ export default class ChatHistory extends Component {
 		this.addTask = this.addTask.bind(this);
 		this.handleOpen=this.handleOpen.bind(this);
 		this.handleClose=this.handleClose.bind(this);
-	    console.log(this.props.avatars,"!!!!");
-
 	}
 
 
@@ -70,10 +68,7 @@ scrollToBottom() {
 		//console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nthis is mounted\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		this.props.psocket.emit('receiveChatHistory',msg);
 		this.props.psocket.on('confirmStickyTasks', (task)=>{
-		this.setState({task:task});
-		const tasklists = <Tasks handleChecked={this.handleChecked.bind(this)} task={this.state.task} addTask={this.addTask}/>
-		this.setState({response:tasklists, sn:true});
-			// console.log('task state on socket -----> ',this.state.task);
+			this.setState({task:task, sn:true});
 		});
 	}
     componentDidUpdate(){
@@ -136,6 +131,8 @@ scrollToBottom() {
 		else
 			lem = (<FlatButton label="Load Earlier Messages" primary={true} onClick={this.getEarlierMessages.bind(this)}/>);
 
+
+		//messageList ---------->
 		let messageList = this.props.chatHistory.map((message,i)=>{
 			if(this.props.username !== message.sender){
 			return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",maxWidth:'80%'}}>
@@ -150,23 +147,20 @@ scrollToBottom() {
 		}
 		else if (this.state.sn) {
 			return(
-				<div>
 				<Dialog
+					key={i}
 					title="Tasks"
 					actions={actions}
 					modal={false}
 					open={this.state.sn}
 					onRequestClose={this.handleClose}
 				>
-
-						<ListItem primaryText={this.state.response}/>
-
+						<Tasks handleChecked={this.handleChecked.bind(this)} task={this.state.task} addTask={this.addTask}/>
 				</Dialog>
-			</div>
 			);
 		}
 		else{
-		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",,maxWidth:'80%'}}>
+		return (<Row key={i} start="xs"><Col xs={10} sm={10} md={10} lg={10} style={{marginTop:"2px",marginBottom:"2px",maxWidth:'80%'}}>
 		<Card>
 		<CardHeader style={cardtitle} title={message.sender} subtitle={message.TimeStamp} avatar={this.props.avatars[message.sender]} openIcon={<ActionFavorite />}/>
 		<CardText title={message.msg} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}

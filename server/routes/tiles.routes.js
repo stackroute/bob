@@ -505,7 +505,7 @@ module.exports = router;
 
 
 //sample output
-/*GET=>http://bob.blr.stackroute.in/user/tanay/Layout
+/*GET=>http://localhost:8000/user/tanay/Layout
 {
   "result": true,
   "data": [
@@ -530,7 +530,7 @@ module.exports = router;
   ]
 }
 
-PUT=>http://bob.blr.stackroute.in/user/tanay/Layout
+PUT=>http://localhost:8000/user/tanay/Layout
 Request->
 {
 "layout":[
