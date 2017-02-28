@@ -35,7 +35,7 @@ export default class Chat extends React.Component{
 		this.state={typing:[],chatHistory:[],pagesDisplayed:0,
       next:"",searchText:"",members:[],addedMembers:[],
       openDrawer:false,booklist:[],addOpen:false,membersOpen:false,
-      membersList:[],gitStatus:false};
+      membersList:[],gitStatus:false,create:false};
 		this.handleShowMembers=this.handleShowMembers.bind(this);
 		this.handleMembersClose=this.handleMembersClose.bind(this);
 		this.handleAddMembers=this.handleAddMembers.bind(this);
@@ -72,7 +72,7 @@ export default class Chat extends React.Component{
 		})
 		this.props.socket.on("receiveBoomarkHistory",(receiveBoomarkHistory)=>{
 			let a=this.props.channelID;
-			console.log(receiveBoomarkHistory[0].bookmark);
+			//console.log(receiveBoomarkHistory[0].bookmark);
 			//console.log("Received BookMark History",receiveBoomarkHistory[0].bookmark[this.props.channelID][0]);
 			this.setState({booklist:receiveBoomarkHistory[0].bookmark});
 		});
@@ -81,7 +81,7 @@ export default class Chat extends React.Component{
 
         this.props.socket.on("takeGitHubNotifications",(history)=>{
             this.setState({chatHistory:history,gitStatus:true});
-            console.log(history);
+            //console.log(history);
         })
 	}
 
@@ -169,7 +169,7 @@ export default class Chat extends React.Component{
 		this.props.socket.emit('receiveChatHistory',msg1);
 		}
 		else{
-			console.log("GitHub Channel is Clicked");
+			//console.log("GitHub Channel is Clicked");
 			this.props.socket.emit("GetGitHubNotifications",this.props.userName);
 		}
 	}
@@ -187,7 +187,7 @@ export default class Chat extends React.Component{
 		let a=this.props.channelID.split("#");
 		request.get("http://bob.blr.stackroute.in/add/"+a[0]+"/channel/"+a[1]).end((err,res)=>{
 			res=JSON.parse(res.text);
-			this.setState({membersList:res.data,addOpen:true});
+			this.setState({membersList:res.data,addOpen:true,create:false});
 				})
 	}
 
@@ -203,13 +203,18 @@ export default class Chat extends React.Component{
 	}
 
 	handleNewRequest(){
-		this.state.addedMembers.push(this.state.searchText);
 		var a=this.state.searchText;
 		var b=this.state.membersList;
 		var c=b.indexOf(a);
-		b.splice(c,1);
-		this.setState({membersList:b,searchText:""})
-	}
+		if(c>-1){
+			b.splice(c,1);
+			let z = this.state.addedMembers;
+			z.push(this.state.searchText);
+			this.setState({membersList:b,addedMembers:z,searchText:"",create:true,addMemberError:""});
+		}
+		else{
+			this.setState({addMemberError:"Member not present in Project"});
+		}	}
 
 	handleRequestDelete(item){
 		var a=this.state.addedMembers;
@@ -221,8 +226,9 @@ export default class Chat extends React.Component{
 	}
 
 	handleSubmit(){
-		this.props.socket.emit("addMembers",this.props.channelID,this.state.addedMembers);
-		this.setState({addOpen:false});
+		if(this.state.addedMembers.length>0)
+		{this.props.socket.emit("addMembers",this.props.channelID,this.state.addedMembers);}
+		this.setState({addOpen:false,create:false});
 	}
 
 	handleLeave(){
@@ -231,20 +237,20 @@ export default class Chat extends React.Component{
 	handleSelect(book,event,status){
  		 //this.setState({bookitem:event.target.value});
 
- 			 console.log(book,"=======",status);
+ 			 //console.log(book,"=======",status);
  		 if(status){
- 		 console.log("Boooooooooooooooook Iiiiiiiiiiiiiitem     ",this.state.booklist);
+ 		 //console.log("Boooooooooooooooook Iiiiiiiiiiiiiitem     ",this.state.booklist);
  		 this.state.booklist.push(book);
  		 this.props.socket.emit('saveBookmarks',book,this.props.userName,this.props.channelID,);
- 		 console.log(this.state.booklist);
+ 		// console.log(this.state.booklist);
 
  			 }
  			 else{
  				 var indexno=this.state.booklist.indexOf(book);
- 				 console.log("false parttt", indexno);
+ 				 //console.log("false parttt", indexno);
  				 this.state.booklist.splice(indexno,1);
  				 this.props.socket.emit('deleteBookmarks',book,this.props.userName,this.props.channelID);
- 				 console.log(this.state.booklist);
+ 				 //console.log(this.state.booklist);
 
  			 }
  			//this.props.socket.emit('bookmarks',this.state.booklist);
@@ -253,7 +259,7 @@ export default class Chat extends React.Component{
 
 
 	render(){
-		console.log(this.state.members,"Inside Chat");
+		//console.log(this.state.members,"Inside Chat");
 		let typ;
 		if(this.state.typing.length===1){
 			typ = <Chip>{this.state.typing + " is typing"}</Chip>;
@@ -271,7 +277,7 @@ export default class Chat extends React.Component{
 				typ = null;
 			}
 
-  const actions = <RaisedButton label="Add" primary={true} onTouchTap={this.handleSubmit}/>
+  const actions = <RaisedButton label="Add" disable={!this.state.create} primary={true} onTouchTap={this.handleSubmit}/>
   let display=  <Dialog title="AddMembers" actions={actions} modal={false} open={this.state.addOpen} onRequestClose={this.handleClose}>
   				  <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} hintText="Add" searchText={this.state.searchText}  maxSearchResults={5} onUpdateInput={this.handleUpdateInput} onNewRequest={this.handleNewRequest} dataSource={this.state.membersList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
                {this.state.addedMembers.map((item,i)=>{

@@ -23,7 +23,7 @@ export default class Bob extends React.Component{
          var b=base64.decode(a.split('.')[1]);
          var c=utf8.decode(b);
          var d=a.split("#")[1];
-         console.log(d,"avatar");
+         //console.log(d,"avatar");
         // console.log(c,c.userName,"Nameee");
         this.state={
           userName:c,
@@ -45,7 +45,7 @@ export default class Bob extends React.Component{
        componentDidMount(){
            let that=this;
               this.context.socket.on('channelList', function (list,unreadCount,lat,currentChannel,avatars,gitChannelStatus,repos) {
-                console.log(currentChannel,"Bob current Channel Name");
+               // console.log(currentChannel,"Bob current Channel Name");
                 that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel,avatars:avatars,gitChannelStatus:gitChannelStatus,repos:repos});
                 cookie.save('projectName',currentChannel.split('#')[0]);
                 that.resetCurrentChannelUnread(that.state.unreadCount);
@@ -53,7 +53,7 @@ export default class Bob extends React.Component{
             });
 
               this.context.socket.on("updateUnread",function(currentChannel,prevChannel,d,avatars){
-                console.log("Inside Update Unread");
+                //console.log("Inside Update Unread");
                 let temp=that.state.lat;
                 let unread=that.state.unreadCount;
                 temp[prevChannel]=d;
@@ -81,28 +81,38 @@ export default class Bob extends React.Component{
                that.setState({channelsList: channel,currentChannel:channel[a-1],gitChannelStatus:status});
              });
 
-              this.context.socket.on('joinedNewChannel',function(message){ //added by manoj
-                if(message.toId===that.state.userName)
-                  that.setState((prevState,props)=>{
-                    prevState.channelsList.push(message.newDM);
-                    prevState.lat[message.newDM] = message.lat;
-                    prevState.unreadCount[message.newDM] = 0;
-                    console.log(prevState,"prevstate");
-                    return {channelsList:prevState.channelsList,lat:prevState.lat,unreadCount:prevState.unreadCount};
-                  });
+                  this.context.socket.on('joinedNewChannel',function(message){ //added by manoj
+                  console.log("invited ",message);
+                  console.log("this is username",that.state.userName);
+                if(message.toId.includes(that.state.userName))
+                  {
+                    that.snackbar("You are added to a new Channel '"+message.newDM);
+                    console.log("subscribing to channel. ",message.newDM);  
+                                    that.context.socket.emit('subscribeMe',message.newDM);
+                                    that.setState((prevState,props)=>{
+                                      prevState.channelsList.push(message.newDM);
+                                      prevState.lat[message.newDM] = message.lat;
+                                      prevState.unreadCount[message.newDM] = 0;
+                                      console.log(prevState,"prevstate");
+                                      return {channelsList:prevState.channelsList,lat:prevState.lat,unreadCount:prevState.unreadCount};
+                                    });}
+              });
+
+              this.context.socket.on('errorOccured',function(data){
+                that.snackbar(data);
               });
                this.context.socket.emit("login",this.state.userName,cookie.load('projectName'));
          }
 
       resetCurrentChannelUnread(unreadCount){
-        console.log("timeOut",unreadCount);
+        //console.log("timeOut",unreadCount);
           var temp=unreadCount;
                 var channel=this.state.currentChannel;
                 //console.log(temp[channel],"temp");
                 let that=this;
                  setTimeout(function(){
                       temp[channel]=0
-                      console.log(temp);
+                      //console.log(temp);
                       that.setState({unreadCount:temp});
                      }.bind(this),500);
 
@@ -120,7 +130,7 @@ export default class Bob extends React.Component{
       }
 
       toggleCurrentChannel(item,prevChannel){
-        console.log("Inside the bob the current and previous channel ",item,prevChannel);
+        //console.log("Inside the bob the current and previous channel ",item,prevChannel);
         this.setState({
           currentChannel:item
         });
@@ -150,7 +160,7 @@ export default class Bob extends React.Component{
       }
 
       render(){
-       console.log(this.state,"User Name");
+       //console.log(this.state,"User Name");
         let chatArea;
          if(this.context.socket!=null&&this.state.currentChannel!=""){
         //console.log(this.state.currentChannel,"current Channel");

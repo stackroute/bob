@@ -40,7 +40,8 @@ export default class ProjectDetails extends Component {
            slideIndex:0,
            projectName1:"",
            nonUserProjects:[],
-           create:true
+           create:true,
+           addMemberError:"",
        }
 
        this.handleProjectChange=this.handleProjectChange.bind(this);
@@ -77,11 +78,11 @@ export default class ProjectDetails extends Component {
                         return !res.data.includes(item);
                       });
                       console.log("these are non up ",data);
-
+                      
                       let index = usersList.indexOf(userName); //remove user from userslist.
                       if(index > -1)
                         usersList.splice(index,1);
-
+          
                       that.setState({nonUserProjects:data,projectsList:projectsList,usersList:usersList});
                     }
           else{
@@ -91,11 +92,11 @@ export default class ProjectDetails extends Component {
 
         });
     })
-
+    
    }
 
 handleUpdateInput(searchText){
-
+    if(this.state.usersList.includes(searchText))
     this.setState({
       searchText: searchText,
     });
@@ -104,12 +105,24 @@ handleUpdateInput(searchText){
   handleNewRequest(){
     var a=this.state.usersList;
     var b=a.indexOf(this.state.searchText);
-    a.splice(b,1);
-    this.state.addUsers.push(this.state.searchText);
-    this.setState({
-      searchText: '',
-      usersList:a
-    });
+    if(b>-1){
+
+      a.splice(b,1);
+      this.state.addUsers.push(this.state.searchText);
+      this.setState({
+        searchText: '',
+        usersList:a,
+        addMemberError:"",
+      });
+    }
+    else{
+      this.setState({
+        addMemberError:"Member does not Exist!",
+        searchText:''
+      });
+    }
+
+    
   };
 
    handleProjectChange(e){
@@ -200,7 +213,7 @@ handleUpdateInput(searchText){
 
     //     that.setState({request:JSON.parse(reply.text).status});
     //   }
-
+      
     // })
    }
    render() {
@@ -230,7 +243,12 @@ handleUpdateInput(searchText){
             </div>
             <div>
             <h3>Add Members</h3>
-               <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}} hintText="Members" searchText={this.state.searchText}  maxSearchResults={5} onUpdateInput={this.handleUpdateInput} onNewRequest={this.handleNewRequest} dataSource={this.state.usersList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)} openOnFocus={true} /><br/>
+               <AutoComplete style={{marginTop:"20px",marginBottom:"20px"}}
+                hintText="Members" searchText={this.state.searchText}  maxSearchResults={5}
+                 onUpdateInput={this.handleUpdateInput} onNewRequest={this.handleNewRequest}
+                  dataSource={this.state.usersList} filter={(searchText, key) => (key.indexOf(searchText) !== -1)}
+                  openOnFocus={true} errorText={this.state.addMemberError}
+                  /><br/>
                <div>
                {this.state.addUsers.map((item,i)=>{
                  return(<Chip key={i} onRequestDelete={this.handleRequestDelete.bind(this,item)} style={styles.chip}>{item}</Chip>)
@@ -242,7 +260,7 @@ handleUpdateInput(searchText){
               <RaisedButton label="Create" disabled={!this.state.create}  primary={true} style={{marginTop:"20px"}} onClick={this.handleClick}/>
            </div>
            </SwipeableViews>
-
+           
            </Paper>
           </Col>
         </Row>

@@ -96,7 +96,7 @@ scrollToBottom() {
     var lists = this.state.task;
     var obj = lists[i];
     obj.checked = !obj.checked;
-    console.log(obj);
+    //console.log(obj);
     lists.splice(i,1,obj);
     this.setState({task: lists})
   }
@@ -113,13 +113,13 @@ scrollToBottom() {
   handleClose(){
 		this.props.psocket.emit('taskArray', this.props.channelId, this.state.task);
     this.setState({sn: false, task:[]});
-		console.log('task state emit socket -----> ', this.state.task);
+		//console.log('task state emit socket -----> ', this.state.task);
   };
 	// Task functionality END ---------->
 
 
 	render() {
-		console.log(this.props,"ChatHistory");
+		//console.log(this.props,"ChatHistory");
 		const actions = [
 			<FlatButton
 				label="OK"

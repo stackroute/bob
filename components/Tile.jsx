@@ -190,7 +190,7 @@ export default class Tile extends React.Component{
 		event.persist();
 		let data = event.target.value;
 		let status;
-		if(data.includes(' ')&&data.length==0)
+		if(data.includes(' ')||data.length==0)
 			status = false;
 		else
 			status = true;
@@ -216,7 +216,7 @@ export default class Tile extends React.Component{
 			return {filterInputs:prevState.filterInputs,pOkay:status};
 		});
 		this.setState((prevState,props)=>{
-			if(prevState.pOkay&&prevState.cOkay)
+			if(prevState.pOkay&&prevState.cOkay&&prevState.tOkay)
 				return {Okay:true};
 			else
 				return {Okay:false};
@@ -226,7 +226,7 @@ export default class Tile extends React.Component{
 	handleChannelInput(value){  //handle channel input field. set bools for validation.
 		console.log("channel");
 		let status;
-		if(this.state.filters.channels.includes(this.state.filterInputs.projectInput+value))
+		if(this.state.filteredChannels.includes(value))
 			status = true;
 		else
 			status = false;
@@ -235,7 +235,7 @@ export default class Tile extends React.Component{
 			return {filterInputs:prevState.filterInputs,cOkay:status};
 		});
 		this.setState((prevState,props)=>{
-			if(prevState.pOkay&&prevState.cOkay)
+			if(prevState.pOkay&&prevState.cOkay&&prevState.tOkay)
 				return {Okay:true};
 			else
 				return {Okay:false};
@@ -310,6 +310,8 @@ export default class Tile extends React.Component{
 	}
 
 	render(){
+
+		console.log('this.state ',this.state);
 
 
 		//below dialog is the configuration tile dialog.
@@ -391,12 +393,12 @@ export default class Tile extends React.Component{
 			pop = null;
 
 		if(this.state.msgList.length===0){
-			return (<div onMouseEnter={()=>{this.setState({stop:true});}}
+			return (<div style={{height:"100%"}} onMouseEnter={()=>{this.setState({stop:true});}}
 						onMouseLeave={()=>{this.setState({stop:false});}}>
 						{dialog}
-						<Paper style={{width:'96%',}} zDepth={3} >
-						<Card style={{background:'#ff9800',margin: 0}}>
-		                	<CardText style={{background:'#e3f2fd',height: 60}}>
+						<Paper style={{width:'96%',height:"100%"}} zDepth={3} >
+						<Card style={{background:'#ff9800',height:"100%",margin: 0}}>
+		                	<CardText style={{background:'#e3f2fd',height:"90%"}}>
 		                		"No Notifications to Display"
 		                	</CardText>
 		                 	<CardMedia overlayContentStyle={{background:'#e3f2fd'}} style={{position:'relative',marginTop:0}} overlay={pop} >
@@ -406,16 +408,15 @@ export default class Tile extends React.Component{
 		            </div>);
 		}
 		else{
-			return (<div >
-						{dialog}
+			return (<div style={{height:"100%"}}>
 						<AutoPlaySwipeableViews autoplay={!this.state.stop}
 						 onMouseEnter={()=>{this.setState({stop:true});}}
-						 onMouseLeave={()=>{this.setState({stop:false});}}>
+						 onMouseLeave={()=>{this.setState({stop:false});}} style={{height:"100%"}}>
 		                {
 		                	this.state.msgList.map((details, i) => {
 		                		return (
-		                			    <div key={i} tyle={{width:'100%'}}	containerStyle={{tableLayout:'fixed',wordWrap:'break-word'}}>
-																<Paper style={{width:'98%',overflow:'hidden'}} zDepth={5} >
+		                			    <div key={i} style={{width:'100%',height:"100%"}}	containerStyle={{tableLayout:'fixed',wordWrap:'break-word',height:"100%"}}>
+										<Paper style={{width:'98%',overflow:'hidden'}} zDepth={5} >
 		                			      <Card style={{background:'#ff9800',margin: 0}}>
 
 		               				        <CardHeader style={{background:'#ff9800',fontWeight:600}} titleStyle={{tableLayout:'fixed',wordWrap:'break-word'}} title={details.channelId.split("#")[0]+"/"
@@ -423,17 +424,19 @@ export default class Tile extends React.Component{
 		               					        +details.sender}  subtitle = {details.TimeStamp}
 		               					    >
 		               				        </CardHeader>
-		               				        <CardText style={{background:'#e3f2fd',height:140,tableLayout:'fixed',wordWrap:'break-word'}}>
+		               				        <CardText style={{background:'#e3f2fd',height:"100%",tableLayout:'fixed',wordWrap:'break-word'}}>
 		               				        	{details.msg}
 		               				        </CardText>
 		               				        <CardMedia style={{position:'relative',marginTop:0}} overlayContentStyle={{background:'#e3f2fd'}} overlay={pop} >
 		               				        </CardMedia>
 		                				</Card>
-														</Paper>
+										</Paper>
 		                				</div>);
 		                	})
 		                }
 		                </AutoPlaySwipeableViews>
+						{dialog}
+
 		            </div>
 		    );
 		}

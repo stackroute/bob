@@ -17,6 +17,7 @@
     "concurrently": "^3.2.0",
     "cookie-parser": "^1.4.3",
     "express": "^4.14.1",
+    "express-static": "^1.0.3",
     "flexboxgrid": "^6.3.1",
     "formsy": "^0.19.2",
     "formsy-material-ui": "^0.5.5",

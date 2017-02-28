@@ -435,8 +435,12 @@ router.post('/user/:userId/Tiles/:projectId', function(req, res) { //add a new t
             "x": 5,
             "y": 5,
             "i": reply._id,
-            "moved": false,
-            "static": false
+            "moved": true,
+            "static": false,
+            "minW" : 2,
+            "minH" :2,
+            "maxW" :6,
+            "maxH" :6,
 
         };
         client.lpush("#Layout#" + userId, JSON.stringify(ob), function(err, reply) { //

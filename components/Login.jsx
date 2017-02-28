@@ -1,24 +1,31 @@
-import React, { Component } from 'react';
-import Paper from 'material-ui/Paper';
 import RaisedButton from 'material-ui/RaisedButton';
+import React, { Component } from 'react';
+import {Link,hashHistory} from 'react-router';
+import request from 'superagent';
 import {Grid, Row, Col} from 'react-flexbox-grid/lib/index';
-
-export default class Login extends Component {
-	render() {
-		return (
-
-              <center style={{height:"100%"}}>
-              <Paper style={{height:"400px",width:"400px",marginTop:"20px"}}>
-              <Grid  style={{height:'100%', width:"60%"}}>
-               <Row style={{ height:'100%',overflow:'hidden',width:"100%"}}>
-             <Col xs={12} sm={12} md={12} lg={12} style={{height:'100%'}}>
-             <h2>Let's Chat  -Bob</h2>
-				<RaisedButton label="Login with GITHUB" style={{marginTop:"100px"}} href="https://github.com/login/oauth/authorize?client_id=1b4daad08bbe4298d833&scope=read:repo_hook%20write:repo_hook%20admin:repo_hook" primary={true} />
-			</Col>
-			</Row>
-			</Grid>
-			</Paper>
-			</center>
-		);
-	}
-}
+import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card';
+import Request from 'superagent';
+export default class Login extends React.Component
+{
+    render()
+    {
+        return(
+                <Grid style={{width:'96vw',height:'100%'}}>
+<div style={{style:'##303f9f'}}>
+                <Row center="xs">
+                        {/* <img src="http://172.23.238.198:8000/images/final.jpg" /> */}
+                         <Card style={{width:'100%',maxHeight:'100%'}}>
+                             <CardMedia mediaStyle={{maxHeight:'100%'}} overlayContainerStyle={{marginBottom:'10%',opacity:'0.9',backgroundColor:'none',overflow:'hidden'}}
+                                 overlayContentStyle={{background:'none'}}
+                                overlay={<RaisedButton label="Login with GITHUB"
+                                    href="https://github.com/login/oauth/authorize?client_id=1b4daad08bbe4298d833" primary={true} />}
+                                >
+                                    <img src="http://bob.blr.stackroute.in/static/images/final.jpg" style={{maxHeight:'100%'}}/>
+                            </CardMedia>
+                        </Card>
+                </Row>
+                    </div>
+                    </Grid>
+                );
+                            }
+                        }

@@ -52,6 +52,12 @@ module.exports = function(io, socket) {
     socket.on('saveBookmarks', saveBookmarks);
     socket.on('deleteBookmarks', deleteBookmarks);
     socket.on('taskArray', saveTaskArray);
+    socket.on('subscribeMe', handleSubscribeMe);
+
+    function handleSubscribeMe(channelName) {
+        console.log("subscribing socket: ", socket.id, " to ", channelName);
+        sub.subscribe(channelName);
+    }
 
     function saveTaskArray(channelName, tasks){
       Tasks.update({channelName:channelName},{$set:{tasks: tasks}}, {upsert: true}, function(err, reply){
@@ -212,42 +218,75 @@ module.exports = function(io, socket) {
 
     function newChannel(username, projectName, channelName, type) {
         //console.log("newChannelEvent parameters : ", username, projectName, channelName);
+       
         let channel = projectName + '#' + channelName;
         let project = projectName + "#general";
-        if (type == "public") {
 
-            ChannelInfo.find({ channelName: project }, function(err, reply) {
-                addMembers(username, channel, reply[0].members, type);
-                UserInfo.findOne({ username: username }, function(err, reply) {
-                    socket.emit('updatedChannelList', reply.channelList,reply.gitChannelStatus);
-                })
-            })
+        ChannelInfo.find({ channelName: channel }, (err, reply) => {
+            if (!(reply == undefined || reply.length == 0))
+                socket.emit('errorOccured', "Channel already present");
+            else {
+                if (type == "public") {
 
-        } else if (type == 'private') {
-            UserInfo.findOneAndUpdate({ username: username }, { $push: { channelList: channel } }, function(err, reply) {
-                let pn = channel;
-                let a = "lat." + pn;
-                var obj = {};
-                obj[a] = new Date();
-                LatList.update({ username: username }, { $set: obj }, function(err, reply) {
-                    let a = [];
-                    a.push(username);
-                    let channelinfo = new ChannelInfo({
-                        channelName: channel,
-                        members: a,
-                        admin: username,
-                        requests: [],
-                        type: type
-                    });
-                    channelinfo.save(function(err, reply) {
+                    ChannelInfo.find({ channelName: project }, function(err, reply) {
+                        addMembers(username, channel, reply[0].members, type);
+
+                        //added by manoj to make every member get an update regarding added to channel.
+                        let ob = {
+                            newDM: projectName + "#" + channelName,
+                            toId: reply[0].members,
+                            lat: new Date()
+                        }
+                        console.log("pushing this object via redis :", ob);
+                        client.publish(projectName + "#general", JSON.stringify(ob)); //published chaaneel name via redis topic.
+                        //added end here.
                         UserInfo.findOne({ username: username }, function(err, reply) {
-                            socket.emit('updatedChannelList', reply.channelList,reply.gitChannelStatus);
+                            socket.emit('updatedChannelList', reply.channelList);
+
                         })
                     })
-                })
-            })
-            sub.subscribe(channel);
-        }
+
+                } else if (type == 'private') {
+                    UserInfo.findOneAndUpdate({ username: username }, { $push: { channelList: channel } }, function(err, reply) {
+                            let pn = channel;
+                            let a = "lat." + pn;
+                            var obj = {};
+                            obj[a] = new Date();
+                            LatList.update({ username: username }, { $set: obj }, function(err, reply) {
+                                let a = [];
+                                a.push(username);
+                                let channelinfo = new ChannelInfo({
+                                    channelName: channel,
+                                    members: a,
+                                    admin: username,
+                                    requests: [],
+                                    type: type
+                                });
+                                channelinfo.save(function(err, reply) {
+                                    UserInfo.findOne({ username: username }, function(err, reply) {
+                                        socket.emit('updatedChannelList', reply.channelList);
+                                    })
+                                })
+                            })
+                        })
+                        //added by manoj to make every member get an update regarding added to channel.
+                    let ob = {
+                        newDM: channel,
+                        toId: [username],
+                        lat: new Date()
+                    }
+                    console.log("pushing this object via redis :", ob);
+                    client.publish(projectName + "#general", JSON.stringify(ob)); //published chaaneel name via redis topic.
+                    //added end here.
+                }
+                sub.subscribe(channel);
+
+            }
+
+
+
+        });
+
     }
 
     function feedbackManager(obj) {
@@ -422,6 +461,7 @@ module.exports = function(io, socket) {
 
     socket.on('login', function(usrname) {
         //console.log("first line onlt", usrname,projectName);
+        sub.subscribe('general');
         currentUser=usrname;
         let lat = null;
         let loginTime = new Date().getTime();
@@ -470,7 +510,7 @@ module.exports = function(io, socket) {
                   })
                  
               },function(err){
-                console.log(channelList,unreadCount,lat,currentChannelName,avatars,gitChannelStatus,repos);
+               // console.log(channelList,unreadCount,lat,currentChannelName,avatars,gitChannelStatus,repos);
               socket.emit('channelList', channelList, unreadCount, lat,currentChannelName,avatars,gitChannelStatus,repos);
             })
             })
@@ -590,14 +630,14 @@ module.exports = function(io, socket) {
     socket.on("addNewUser", function(userName, projectName, membersList, avatar) {
         let repositary=[];
       request.get("https://api.github.com/users/"+userName+"/repos").end((err,res)=>{
-  res.body.map((repos,i)=>{
+        res.body.map((repos,i)=>{
     repositary.push(repos.name);
   })
- // console.log("Repos ",repositary);
+  console.log("Repos ",repositary);
 
         UserInfo.findOne({ username: userName }, function(err, reply) {
             if (reply == null) {
-                console.log(avatar, "AAA");
+               // console.log(avatar, "AAA");
                 let a = [];
                 a.push(projectName + "#general");
                 let user = new UserInfo({
@@ -643,8 +683,26 @@ module.exports = function(io, socket) {
 
                     })
                 })
+                console.log("sending added via channel ", "#general"); //sending via system gen channel."general"
+                let ob = {
+                    newDM: projectName + "#" + "general",
+                    toId: membersList,
+                    lat: new Date()
+                }
+                console.log("pushing this object via redis :", ob);
+                client.publish("general", JSON.stringify(ob)); //published chaaneel name via redis topic.
+                sub.subscribe(projectName + "#" + "general"); //subscribe the admin
             } else {
-                addMembers(userName, projectName + "#general", membersList, "private");
+               addMembers(userName, projectName + "#general", membersList, "private");
+                  console.log("sending added via channel ", "#general"); //sending via system gen channel."general"
+                let ob = {
+                    newDM: projectName + "#" + "general",
+                    toId: membersList,
+                    lat: new Date()
+                }
+                console.log("pushing this object via redis :", ob);
+                client.publish("general", JSON.stringify(ob)); //published chaaneel name via redis topic.
+                sub.subscribe(projectName + "#" + "general"); //subscribe the admin
             }
         })
 })
@@ -657,6 +715,8 @@ module.exports = function(io, socket) {
     })
 
     socket.on("addMembers", function(channelName, membersList) {
+       console.log(channelName,"  ",membersList);
+        let members = membersList;
         async.each(membersList, function(member, callback) {
             UserInfo.findOneAndUpdate({ username: member }, { $push: { channelList: channelName } }, function(err, reply) {
                 let pn = channelName;
@@ -669,6 +729,14 @@ module.exports = function(io, socket) {
 
             })
         })
+        console.log("sending added via channel ", channelName); //sending via system gen channel."general"
+        let ob = {
+            newDM: channelName,
+            toId: members,
+            lat: new Date()
+        }
+        console.log("pushing this object via redis :", ob);
+        client.publish(channelName.split('#')[0] + "#general", JSON.stringify(ob)); //published chaaneel name via redis topic.
     })
 
     socket.on("leaveGroup", function(projectName, userName) {

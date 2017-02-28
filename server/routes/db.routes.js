@@ -1,7 +1,6 @@
 var express = require('express')
 var router = express.Router()
 var client = require('./../connections/redisclient.js');
-var request = require('superagent-relative');
 var mongoose = require('mongoose');
 const db = require('./../connections/dbconnect.js');
 const Tiles = require('./../model/tile.schema.js');
@@ -26,15 +25,44 @@ router.get('/user/:userId/channels', function(req, res) {
             console.log("User : " + userId + " not found.");
             return res.send({ result: false, status: "User : " + userId + " not found." });
         } else {
-            if(reply[0].channelList.length==0)
-              return res.send({ result: true, data:[]});
-            return res.send({ result: true, data:reply[0].channelList});
+            if (reply[0].channelList.length == 0)
+                return res.send({ result: true, data: [] });
+            return res.send({ result: true, data: reply[0].channelList });
 
         }
     });
 
 
 });
+
+router.get('/users/:userId/projects/:project/siblings',function(req,res){
+    console.log("User id is : ", req.params.userId);
+    let userId = req.params.userId;
+    let projectName = req.params.project;
+    Users.find({username:userId},function(err,reply){
+        if (reply === undefined || reply.length == 0) {
+            console.log("User : " + userId + " not found.");
+            return res.send({ result: false, status: "User : " + userId + " not found." });
+        } else {
+
+            if (reply[0].channelList.length == 0)
+                return res.send({ result: true, data: [] });
+
+            if(!reply[0].channelList.includes(projectName+"#general"))
+             return res.send({ result: true, data: [] });
+
+            Channels.find({channelName:projectName+"#general"},function(err,reply){
+                if(reply === undefined || reply.length==0 || reply[0].members==undefined||reply[0].members.length==0)
+                    return res.send({ result: true, data: [] });
+                let index = reply[0].members.indexOf(userId);
+                if(index>-1)
+                    reply[0].members.splice(index,1);
+                return res.send({result:true,data:reply[0].members});
+            });
+        }
+    });
+});
+
 
 router.get("/add/:projectName/channel/:channelName", function(req, res) {
     let a = req.params.projectName + "#" + req.params.channelName;
@@ -82,6 +110,8 @@ router.patch('/channels/:channelName/user/:userName', function(req, res) {
 
 
 
+
+
 router.post('/users/:userId/channels', function(req, res) { //give userId, toId, projectname,it will create the channel.
     console.log("this is params", req.params);
     let userId = req.body.userId; //username got from url
@@ -92,65 +122,77 @@ router.post('/users/:userId/channels', function(req, res) { //give userId, toId,
     let arr = [];
     arr[0] = userId;
     arr[1] = toId;
-    console.log("channel before sort ", arr);
-    arr.sort();
-    console.log("channel after sort ", arr);
+    Users.find({ username: arr[1] }, function(err, reply) {
+        if (reply === undefined || reply.length === 0)
+            return res.send({ result: false, status: "User not present" });
+        else {
 
-    let channel = project + "#" + arr[0] + "#" + arr[1];
-    console.log("complete channel: ", channel);
+            console.log("channel before sort ", arr);
+            arr.sort();
+            console.log("channel after sort ", arr);
+
+            let channel = project + "#" + arr[0] + "#" + arr[1];
+            console.log("complete channel: ", channel);
 
 
 
-    Channels.find({ channelName: channel }, function(err, reply) {
-        if (!(reply === undefined || reply.length === 0)) {
-            return res.send({ result: false, status: "Direct chat already present." });
-        } else {
-            let new_channel = new Channels({
-                channelName: channel, //bob#A#B
-                members: [arr[0], arr[1]],
-                Admin: userId,
-                requests: [],
-                type: ""
-            });
-
-            new_channel.save((err, reply) => {
-
-                Users.find({ username: arr[0] }, function(err, reply) {
-                    if (reply === undefined || reply.length === 0)
-                        return res.send({ result: false, status: "User not present" });
-                    console.log(reply);
-
-                    reply[0].channelList.push(channel);
-                    reply[0].save();
-                });
-                Users.find({ username: arr[1] }, function(err, reply) {
-                    if (reply === undefined || reply.length === 0)
-                        return res.send({ result: false, status: "User not present" });
-                    console.log(reply);
-                    reply[0].channelList.push(channel);
-                    reply[0].save((err, reply) => {
-
-                        console.log("sending added via channel ", project + "#general");
-                        let ob = {
-                            newDM: project + "#" + arr[0] + "#" + arr[1],
-                            toId: toId,
-                            lat: new Date()
-                        }
-                        console.log("pushing this object via redis :", ob);
-                        client.publish(project + "#general", JSON.stringify(ob)); //published chaaneel name via redis topic.
-
-                        return res.send({ result: true, status: "Added " + toId + " to chat", channelName: channel });
-
+            Channels.find({ channelName: channel }, function(err, reply) {
+                if (!(reply === undefined || reply.length === 0)) {
+                    return res.send({ result: false, status: "Direct chat already present." });
+                } else {
+                    let new_channel = new Channels({
+                        channelName: channel, //bob#A#B
+                        members: [arr[0], arr[1]],
+                        Admin: userId,
+                        requests: [],
+                        type: ""
                     });
-                });
-                let obj = {};
-                let prev = 'lat.' + project + "#" + arr[0] + "#" + arr[1];
-                obj[prev] = new Date();
-                Lats.findOneAndUpdate({ username: arr[0] }, { $set: obj }, function(err, reply) {});
-                Lats.findOneAndUpdate({ username: arr[1] }, { $set: obj }, function(err, reply) {});
+
+                    new_channel.save((err, reply) => {
+
+                        Users.find({ username: arr[0] }, function(err, reply) {
+                            if (reply === undefined || reply.length === 0)
+                                return res.send({ result: false, status: "User not present" });
+                            console.log(reply);
+
+                            reply[0].channelList.push(channel); //add this sm and save
+                            reply[0].save();
+                        });
+                        Users.find({ username: arr[1] }, function(err, reply) {
+                            if (reply === undefined || reply.length === 0)
+                                return res.send({ result: false, status: "User not present" });
+                            console.log(reply);
+                            reply[0].channelList.push(channel);
+                            reply[0].save((err, reply) => {
+
+                                console.log("sending added via channel ", project + "#general");
+                                let ob = {
+                                    newDM: project + "#" + arr[0] + "#" + arr[1],
+                                    toId: [toId],
+                                    lat: new Date()
+                                }
+                                console.log("pushing this object via redis :", ob);
+                                client.publish(project + "#general", JSON.stringify(ob)); //published chaaneel name via redis topic.
+
+                                return res.send({ result: true, status: "Added " + toId + " to chat", channelName: channel });
+
+                            });
+                        }); //next updating lat for those channels
+                        let obj = {};
+                        let prev = 'lat.' + project + "#" + arr[0] + "#" + arr[1];
+                        obj[prev] = new Date();
+                        Lats.findOneAndUpdate({ username: arr[0] }, { $set: obj }, function(err, reply) {});
+                        Lats.findOneAndUpdate({ username: arr[1] }, { $set: obj }, function(err, reply) {});
+                    });
+                }
             });
+
+
+
         }
     });
+
+
 });
 
 router.post('/user/:userId/project/', function(req, res) {
@@ -159,13 +201,9 @@ router.post('/user/:userId/project/', function(req, res) {
     let projectName = req.body.projectName;
     let avatar = req.body.avatar;
     console.log(userName, projectName, avatar, "start of joining channel");
-     let repositary=[];
-      request.get("https://api.github.com/users/"+userName+"/repos").end((err,res)=>{
-      res.body.map((repos,i)=>{
-    repositary.push(repos.name);
-  })
+
     Channels.find({ channelName: projectName + "#general" }, function(error, rep) {
-      console.log("this is inside project join",rep);
+        console.log("this is inside project join", rep);
         if (rep === undefined || rep.length === 0) {
             return res.send({ result: false, status: "Project Not present" });
 
@@ -179,9 +217,7 @@ router.post('/user/:userId/project/', function(req, res) {
                         username: userName,
                         channelList: a,
                         currentChannel: projectName + "#general",
-                        avatar: avatar,
-                        repos:repositary,
-                        gitChannelStatus:false
+                        avatar: avatar
                     });
                     user.save(function(err, reply) {
                         let pn = projectName + "#general";
@@ -223,12 +259,20 @@ router.post('/user/:userId/project/', function(req, res) {
                                 })
                             })
                         })
+
+
                     })
+
                 }
             })
         }
+
+
     });
-  });
+
+
+
+
 });
 
 module.exports = router;

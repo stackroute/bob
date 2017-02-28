@@ -35,31 +35,34 @@ export default class ChannelList extends React.Component{
   constructor(props){
     super(props);
    // console.log(this.props.currentChannel,"Constructor");
-    this.state={currentProject:"",channels:[],channelName:"",open:false,dOpen:false,type:"public"
-                ,DMDialogInput:"",DMDialogOpen:false,searchText:"",addedRepos:[],gOpen:false}
+    this.state={channels:[],channelName:"",open:false,dOpen:false,type:"public"
+                ,DMDialogInput:"",DMDialogOpen:false,userList:[],canAdd:false,searchText:"",addedRepos:[],gOpen:false}
     this.handleAddChannel=this.handleAddChannel.bind(this);
     this.handleClose=this.handleClose.bind(this);
     this.handleNameChange=this.handleNameChange.bind(this);
     this.handleSubmit=this.handleSubmit.bind(this);
     this.handleDrawerOpen=this.handleDrawerOpen.bind(this);
-    this.handleProjectChange=this.handleProjectChange.bind(this);
     this.handleType=this.handleType.bind(this);
     this.handleNewRequest=this.handleNewRequest.bind(this);
     this.handleUpdateInput=this.handleUpdateInput.bind(this);
     this.handleRequestDelete=this.handleRequestDelete.bind(this);
     this.handleGitSubmit=this.handleGitSubmit.bind(this);
    }
-
-   componentDidMount() {
-     console.log(this.props,"Inside ChannelList");
-     let a=this.props.currentChannel.split('#')[0];
-     this.setState({currentProject:a})
+ componentDidMount() {
+     console.log(this.props.channelList,this.props.currentChannel,"Inside ChannelList");
+     request.get('http://bob.blr.stackroute.in/users/'+this.props.userName+'/projects/'+cookie.load('projectName')+'/siblings')
+            .end((err,reply)=>{
+              let res = JSON.parse(reply.text);
+              if(res.result)
+              {
+                this.setState({userList:res.data});
+              }
+            });
    }
-
   handleChange(item){
    // console.log("setCurrentChannel", item);
     var temp=this.props.currentChannel;
-    console.log(item,this.props.currentChannel,"heloooooo");
+    //console.log(item,this.props.currentChannel,"heloooooo");
     if(item=="GitHub"){
     this.props.setCurrentChannel(this.props.currentChannel.split("#")[0]+"#"+item+"#"+this.props.userName,temp);
 
@@ -89,13 +92,17 @@ export default class ChannelList extends React.Component{
 
 
  handleAddDM(){  //added by manoj
-        console.log("Icon clicked");
+        //console.log("Icon clicked");
     this.setState({DMDialogOpen:true});
 
   }
 
   handleDMDChange(e){ //added by manoj
-    this.setState({DMDialogInput:e.target.value})
+    
+     if(this.state.userList.includes(e))
+      this.setState({DMDialogInput:e,canAdd:true});
+    else
+      this.setState({DMDialogInput:e,canAdd:false});
 
   }
 
@@ -111,9 +118,9 @@ export default class ChannelList extends React.Component{
     else
     this.setState({dOpen:true});
   }
-
+  
   handleProjectChange(name){
-    this.setState({currentProject:name,dOpen:false});
+    this.setState({dOpen:false});
     this.props.setCurrentChannel(name+"#"+"general",this.props.currentChannel);
 
   }
@@ -126,20 +133,22 @@ export default class ChannelList extends React.Component{
   }
 
   handleAddDirectMessage(){ //added by manoj
-    request
-      .post('http://bob.blr.stackroute.in/users/'+ this.props.userName +'/channels')
+     request
+      .post('http://bob.blr.stackroute.in/users/'+ this.props.userName +'/channels') //create a new DM chat
       .send({
             "userId":this.props.userName,
             "toId":this.state.DMDialogInput,
-            "project":this.state.currentProject
+            "project":this.props.currentChannel.split("#")[0]
         })
       .end((err,res)=>{
         if(JSON.parse(res.text).result)
           {
+            this.context.socket.emit('subscribeMe',JSON.parse(res.text).channelName);
             this.props.snackbar(JSON.parse(res.text).status);
             this.props.pushChannel(JSON.parse(res.text).channelName);
           }
           else{
+            this.props.snackbar(JSON.parse(res.text).status);
             console.log("adding DM failed: ",JSON.parse(res.text));
           }
 
@@ -177,7 +186,7 @@ export default class ChannelList extends React.Component{
  handleGitSubmit(){
       this.props.socket.emit('createGitChannel',this.props.userName,this.props.currentChannel.split("#")[0]);
       request.post('http://bob.blr.stackroute.in/gitChannel/'+this.state.addedRepos).end(function(err,res){
-        console.log(res);
+        //console.log(res);
       })
   }
   //Gowtham GitHubNotifications END ---------->
@@ -216,30 +225,31 @@ export default class ChannelList extends React.Component{
     </Dialog>
 
     //added by manoj
-    let addDMActions = (<RaisedButton label="Create" primary={true} onTouchTap={this.handleAddDirectMessage.bind(this)}/>);
+    let addDMActions = (<RaisedButton label="Create" primary={true} disabled={!this.state.canAdd} onTouchTap={this.handleAddDirectMessage.bind(this)}/>);
     let addDMDialog = (<Dialog title="Start Chat" actions={addDMActions}
     modal={false} open={this.state.DMDialogOpen}
     onRequestClose={this.handleDMDClose.bind(this)}>
-    <TextField hintText="Person Name" floatingLabelText="Person Name" value={this.state.DMDialogInput} onChange={this.handleDMDChange.bind(this)}/><br />
+     <AutoComplete hintText="Person Name" floatingLabelText="Person Name" value={this.state.DMDialogInput}
+           onUpdateInput={this.handleDMDChange.bind(this)} dataSource={this.state.userList}/><br />
     </Dialog>);
     //added by manoj end
 
     let channels=[];
 
     channels = this.props.channelList.filter((item,i)=>{ //get only this project channles.
-      return this.state.currentProject===item.split('#')[0];
+      return this.props.currentChannel.split('#')[0]===item.split('#')[0];
     })
 
     let DMList = channels.filter((item,i)=>{ //get all dm channels.
       return item.split('#').length === 3 && item.split('#')[1]!=="GitHub";
     });
-    console.log("channels is ,",channels);
+   // console.log("channels is ,",channels);
 
     let gitChannel =  channels.filter((item,i)=>{ //get all git channels.
       return item.split('#')[1] == "GitHub";
     });
 
-    console.log("this is git channel",gitChannel);
+    //console.log("this is git channel",gitChannel);
 
     channels = channels.filter((item,i)=>{ //get all group channels.
       return item.split('#').length === 2;
@@ -268,25 +278,32 @@ export default class ChannelList extends React.Component{
     DMList = DMList.map((item,i)=>{  //display the names.
       return item.split('#')[1]+"#"+item.split('#')[2];
     });
-    console.log("this is channels, ",channels,"and this is dm",DMList,"filtered: ",DMListfiltered);
+    //console.log("this is channels, ",channels,"and this is dm",DMList,"filtered: ",DMListfiltered);
 
 
     let channelList=channels.map((item,i)=>{  //this is group channels list
         if(this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]!=0&&this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]!=undefined){
-          return(<ListItem key={i} value={item} primaryText={item} onTouchTap={this.handleChange.bind(this,item)} rightIcon={<Badge badgeContent={this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]} primary={true}></Badge>}/>);
+          return(<ListItem key={i} value={channelSelectable[i]} primaryText={item} onTouchTap={this.handleChange.bind(this,item)} rightIcon={<Badge badgeContent={this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+item]} primary={true}></Badge>}/>);
         }
         else{
-          return(<ListItem key={i} value={item} primaryText={item} onTouchTap={this.handleChange.bind(this,item)}/>);
+          return(<ListItem key={i} value={channelSelectable[i]} primaryText={item} onTouchTap={this.handleChange.bind(this,item)}/>);
         }
       });
 
       DMListfiltered = DMListfiltered.map((item,i)=>{  //this is dm channel list.
+                if(this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+DMList[i]]!=0&&this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+DMList[i]]!=undefined){
         return(<ListItem key={"dm"+i} value={DMSelectable[i]} primaryText={item}
         onTouchTap={this.handleChange.bind(this,DMList[i])}
-        rightIcon={<Badge badgeContent={this.props.unreadCount[this.state.currentProject+'#'+DMList[i]]}
+        rightIcon={<Badge badgeContent={this.props.unreadCount[this.props.currentChannel.split("#")[0]+'#'+DMList[i]]}
         primary={true}></Badge>}/>)
+      }
+      else{
+         return(<ListItem key={"dm"+i} value={DMSelectable[i]} primaryText={item}
+        onTouchTap={this.handleChange.bind(this,DMList[i])}
+        primary={true}/>)
+      }
       });
-      console.log('ipaaa channel : ',this.props.currentChannel);
+     // console.log('ipaaa channel : ',this.props.currentChannel,channels,this.state.currentProject);
      return(
        <div style={{height:'100%',border:'solid 1px #d9d9d9'}}>
        <Grid style={{height:'100%',width:"100%"}}>
@@ -301,15 +318,18 @@ export default class ChannelList extends React.Component{
          {addDMDialog}
          {display}
          {display1}
-         <SelectableList value={this.props.currentChannel.split("#")[1]}>
-         {channelList}
-         <Subheader style={{
-           fontSize: "18px"
-         }}>Direct Message
-         </Subheader>
-         <IconButton onTouchTap={this.handleAddDM.bind(this)} style={{marginLeft:"136px"}}><AddCircle/></IconButton>
-         {DMListfiltered}
-         </SelectableList>
+          <SelectableList value={this.props.currentChannel}>
+      {channelList}
+      <Subheader style={{
+                  fontSize: "18px"
+              }}>Direct Message
+                    <IconButton onTouchTap={this.handleAddDM.bind(this)} style={{marginLeft:"0px"}}><AddCircle/></IconButton>
+
+              </Subheader>
+
+      {DMListfiltered}
+     
+      </SelectableList>
          </Col>
          </Row>
        </Paper>
@@ -318,3 +338,6 @@ export default class ChannelList extends React.Component{
     );
   }
 }
+ChannelList.contextTypes={
+  socket:React.PropTypes.object
+};

@@ -9,6 +9,7 @@ const express = require('express')
     , mongoose = require('mongoose')
     , socket = require('./sockets/socket.js')
     , db = require('./connections/dbconnect.js');
+    var static=require('express-static');
 
 //Routers
 const TilesRouter = require('./routes/tiles.routes.js')
@@ -17,6 +18,8 @@ const TilesRouter = require('./routes/tiles.routes.js')
     , googleRouter = require('./routes/googleAuth.routes.js');
 
 //app
+console.log(path.resolve(__dirname+'/../'));
+app.use('/static',express.static(path.resolve(__dirname+'/../')));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
