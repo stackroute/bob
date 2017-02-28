@@ -185,8 +185,11 @@ export default class ChannelList extends React.Component{
 
  handleGitSubmit(){
       this.props.socket.emit('createGitChannel',this.props.userName,this.props.currentChannel.split("#")[0]);
-      request.post('http://bob.blr.stackroute.in/gitChannel/'+this.state.addedRepos).end(function(err,res){
-        //console.log(res);
+      console.log("Submit Clickeddddddd");
+      
+      request.post('http://bob.blr.stackroute.in/user/'+this.props.userName+'/gitChannel/'+this.state.addedRepos)
+      .end(function(err,res){
+        console.log("Post Done");
       })
   }
   //Gowtham GitHubNotifications END ---------->

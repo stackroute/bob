@@ -11,7 +11,9 @@ var oauth = require("oauth").OAuth2
 var LatList = require('./../model/lat.schema.js')
   , UserInfo = require('./../model/userinfo.schema.js')
   , ChannelInfo = require('./../model/channelinfo.schema.js')
-  , GitChannel = require('./../model/gitchannel.schema.js');
+  , GitChannel = require('./../model/gitchannel.schema.js')
+  , GitAToken = require('./../model/githubatoken.schema.js');
+
 //global variables
 var token
   , accessToken
@@ -45,6 +47,7 @@ router.get('/dashboard', function(req, res) {
         console.log("AccessToken: " + accessToken + "\n");
         request.get("https://api.github.com/user?access_token=" + accessToken).end((err, response) => {
 
+            var userName=response.body.login;
             var payload = response.body.login;
             var avatar = response.body.avatar_url;
             //console.log(avatar);
@@ -53,6 +56,9 @@ router.get('/dashboard', function(req, res) {
             res.cookie("Token", token+"#"+avatar);
             //res.cookie("Image",avatar);
             console.log(token);
+            GitAToken.update({username:userName},{$set:{token:accessToken}},{upsert:true},function(err,res){
+
+            })
             UserInfo.find({ username: payload }).exec((err, reply) => {
                 if (reply.length === 0) {
                     request.post('http://bob.blr.stackroute.in/user/' + payload + "/Layout")
@@ -72,13 +78,14 @@ router.get('/dashboard', function(req, res) {
         });
     });
 });
-router.post('/gitChannel/:repos',function(req,res){
-  //console.log(req.params.repos,"Got Request");
-  var repos_names=req.params.repos.split(",");
-  console.log(userName,accessToken,repos_names);
-  //console.log(repos_names);
-  repos_names.map((repo,i)=>{
-    request.post("https://api.github.com/repos/"+userName+"/"+repo+"/hooks?access_token="+accessToken).send(
+router.post('/user/:userName/gitChannel/:repos',function(req,res){
+ //console.log(req.params.repos,"Got Request");
+ var repos_names=req.params.repos.split(",");
+ let accesstoken="";
+  GitAToken.findOne({username:req.params.userName},function(err,res){
+    accesstoken=res.token;
+    repos_names.map((repo,i)=>{
+    request.post("https://api.github.com/repos/"+req.params.userName+"/"+repo+"/hooks?access_token="+accesstoken).send(
       {
         "name": "web",
         "active": true,
@@ -94,5 +101,9 @@ router.post('/gitChannel/:repos',function(req,res){
         console.log("Success-----Hooks Response");
       });
   });
+  })
+  //console.log(req.params.userName,accesstoken,repos_names,"--------");
+  //console.log(repos_names;
+  
 });
 module.exports = router;

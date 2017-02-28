@@ -76,9 +76,14 @@ export default class Bob extends React.Component{
               })
 
               this.context.socket.on('updatedChannelList', function(channel,status){
-                //console.log(channel,"Updated Channel List");
+                console.log(channel,"Updated Channel List");
                 let a=channel.length;
+                if(channel[a-1].split("#")[1]=="GitHub"){
+                  that.setState({channelsList: channel,currentChannel:channel[a-2],gitChannelStatus:status});
+                }
+                else{
                that.setState({channelsList: channel,currentChannel:channel[a-1],gitChannelStatus:status});
+             }
              });
 
                   this.context.socket.on('joinedNewChannel',function(message){ //added by manoj
