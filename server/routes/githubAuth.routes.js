@@ -5,7 +5,7 @@ const express = require('express')
     , bodyParser = require('body-parser');
 
 var oauth = require("oauth").OAuth2
-  , OAuth2 = new oauth("1b4daad08bbe4298d833", "77630257cf7be6a969458b5dc305789946f62af6", "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
+  , OAuth2 = new oauth("1b4daad08bbe4298d833", "77c98e8f0cd39fb6524ca4b8a720e8bb52a2afa7", "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
 
 //models
 var LatList = require('./../model/lat.schema.js')
