@@ -196,28 +196,44 @@ export default class ChannelList extends React.Component{
 
   render(){
     let display = null;
-
-    if(this.props.gitChannnelStatus==true){
-      const actions = <RaisedButton label="Create" primary={true} onTouchTap={this.handleSubmit}/>
-      display=  <Dialog title="Create Channel" actions={actions} modal={false} open={this.state.open} onRequestClose={this.handleClose}>
-      <TextField hintText="Channel Name" floatingLabelText="Channel Name" value={this.state.channelName} onChange={this.handleNameChange}/><br />
-      <RadioButtonGroup name="Types" defaultSelected="public" onChange={this.handleType}>
-      <RadioButton value="public" label="Public"/>
-      <RadioButton value="private" label="Private"/>
-      </RadioButtonGroup>
-      </Dialog>
-    }
-    else{
-     const actions = <RaisedButton label="Create" primary={true} onTouchTap={this.handleSubmit}/>
-      display=  <Dialog title="Create Channel" actions={actions} modal={false} open={this.state.open} onRequestClose={this.handleClose}>
-      <TextField hintText="Channel Name" floatingLabelText="Channel Name" value={this.state.channelName} onChange={this.handleNameChange}/><br />
-      <RadioButtonGroup name="Types" defaultSelected="public" onChange={this.handleType}>
-      <RadioButton value="public" label="Public"/>
-      <RadioButton value="private" label="Private"/>
-      <RadioButton value="gitChannel" label="GitHub Notification Channel"/>
-      </RadioButtonGroup>
-      </Dialog>
-    }
+    let git;
+    console.log(this.props,"start");
+    console.log(this.props.gitChannelStatus,"<------------>");
+    
+    const actions = <RaisedButton label="Create" primary={true} onTouchTap={this.handleSubmit}/>
+             if(this.props.gitChannelStatus===true)
+                {
+                 display= (<Dialog title="Create Channel" actions={actions} modal={false} open={this.state.open} onRequestClose={this.handleClose}>
+                 <TextField hintText="Channel Name" floatingLabelText="Channel Name" value={this.state.channelName} onChange={this.handleNameChange}/><br />
+                 <RadioButtonGroup name="Types" defaultSelected="public" onChange={this.handleType}>
+                 <RadioButton value="public" label="Public"/>
+                 <RadioButton value="private" label="Private"/>
+                 
+                 </RadioButtonGroup>
+                 </Dialog>);
+               }
+               else{
+                display= (<Dialog title="Create Channel" actions={actions} modal={false} open={this.state.open} onRequestClose={this.handleClose}>
+                 <TextField hintText="Channel Name" floatingLabelText="Channel Name" value={this.state.channelName} onChange={this.handleNameChange}/><br />
+                 <RadioButtonGroup name="Types" defaultSelected="public" onChange={this.handleType}>
+                 <RadioButton value="public" label="Public"/>
+                 <RadioButton value="private" label="Private"/>
+                 <RadioButton value="gitChannel" label="GitHub Notification Channel"/>
+                 </RadioButtonGroup>
+                 </Dialog>);
+               }
+ 
+     //  console.log(this.props.gitChannnelStatus,"Else Part");
+     // const actions = <RaisedButton label="Create" primary={true} onTouchTap={this.handleSubmit}/>
+     //  display=  <Dialog title="Create Channel" actions={actions} modal={false} open={this.state.open} onRequestClose={this.handleClose}>
+     //  <TextField hintText="Channel Name" floatingLabelText="Channel Name" value={this.state.channelName} onChange={this.handleNameChange}/><br />
+     //  <RadioButtonGroup name="Types" defaultSelected="public" onChange={this.handleType}>
+     //  <RadioButton value="public" label="Public"/>
+     //  <RadioButton value="private" label="Private"/>
+     //  <RadioButton value="gitChannel" label="GitHub Notification Channel"/>
+     //  </RadioButtonGroup>
+     //  </Dialog>
+    
 
     const actions1 = <RaisedButton label="Create" primary={true} onTouchTap={this.handleGitSubmit}/>
     let display1=  <Dialog title="Add Repos" actions={actions1} modal={false} open={this.state.gOpen} onRequestClose={this.handleClose}>

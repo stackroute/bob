@@ -8,6 +8,8 @@ const Users = require('./../model/userinfo.schema.js');
 const Channels = require('./../model/channelinfo.schema.js');
 const bodyParser = require('body-parser');
 const Lats = require('./../model/lat.schema.js');
+var request = require('superagent-relative');
+let async = require('async');
 
 
 
@@ -196,12 +198,11 @@ router.post('/users/:userId/channels', function(req, res) { //give userId, toId,
 });
 
 router.post('/user/:userId/project/', function(req, res) {
-
     let userName = req.body.userName;
     let projectName = req.body.projectName;
     let avatar = req.body.avatar;
+     let repositary=[];
     console.log(userName, projectName, avatar, "start of joining channel");
-
     Channels.find({ channelName: projectName + "#general" }, function(error, rep) {
         console.log("this is inside project join", rep);
         if (rep === undefined || rep.length === 0) {
@@ -211,6 +212,11 @@ router.post('/user/:userId/project/', function(req, res) {
 
             Users.findOne({ username: userName }, function(err, reply) { //see if user there in system or not
                 if (reply == null) { //if user not present create userinfo and update the general of project.
+                      request.get("https://api.github.com/users/"+userName+"/repos").end((err,res)=>{
+                        async.each(res.body,function(repos,callback){
+                        repositary.push(repos.name);
+                        callback();
+                      },function(err){
                     let a = [];
                     a.push(projectName + "#general");
                     let user = new Users({
@@ -230,11 +236,12 @@ router.post('/user/:userId/project/', function(req, res) {
                         lat.save(function(err, reply) {
                             Channels.findOneAndUpdate({ channelName: projectName + "#general" }, { $push: { members: userName } }, function(err, reply) {
                                 //socket.emit("Joined");
-
                                 console.log("Saved");
                                 return res.send({ result: true, status: "Welcome to " + projectName });
                             })
                         })
+                    })
+                })
                     })
                 } else { //if present add general to user and user to general.
                     Users.find({ username: userName }, function(err, reply) {

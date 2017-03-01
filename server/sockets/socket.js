@@ -630,9 +630,11 @@ module.exports = function(io, socket) {
     socket.on("addNewUser", function(userName, projectName, membersList, avatar) {
         let repositary=[];
       request.get("https://api.github.com/users/"+userName+"/repos").end((err,res)=>{
-        res.body.map((repos,i)=>{
+    async.each(res.body,function(repos,callback){
     repositary.push(repos.name);
-  })
+    callback();
+  },function(err){
+
   console.log("Repos ",repositary);
 
         UserInfo.findOne({ username: userName }, function(err, reply) {
@@ -704,6 +706,7 @@ module.exports = function(io, socket) {
                 client.publish("general", JSON.stringify(ob)); //published chaaneel name via redis topic.
                 sub.subscribe(projectName + "#" + "general"); //subscribe the admin
             }
+        })
         })
 })
     })
@@ -790,8 +793,10 @@ module.exports = function(io, socket) {
    socket.on("GetGitHubNotifications",function(userName){
       console.log("Get "+userName+"'s Notifications");
       GitChannel.findOne({userName:userName},function(err,reply){
+        if(reply!=null){
         console.log(reply.message);
         socket.emit("takeGitHubNotifications",reply.message);
+    }
       })
     })
   //Gowtham -- GetGitHubNotifications END ---------->

@@ -144,7 +144,9 @@ scrollToBottom() {
 				<Card>
 				<CardHeader title={message.author_name} subtitle={message.timestamp}/>
 				<CardText style={cardtext} subtitle={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
-        uncheckedIcon={<ActionFavoriteBorder />}/>}>{message.msg}
+        uncheckedIcon={<ActionFavoriteBorder />}/>}>REPOSITORY NAME:{message.repo_name}<br/>
+        COMMIT MESSAGE:{message.message}<br/>
+        REPO URL:{message.url}
   		</CardText>
 				<CardMedia style={{position:'relative',marginTop:0,marginLeft:'90%'}} overlayContentStyle={{background:'#ffffff'}} overlay={<Checkbox onCheck={this.props.bookmark.bind(this,message)} checkedIcon={<ActionFavorite />}
 					 uncheckedIcon={<ActionFavoriteBorder />}/>} >

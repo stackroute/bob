@@ -45,7 +45,8 @@ export default class Bob extends React.Component{
        componentDidMount(){
            let that=this;
               this.context.socket.on('channelList', function (list,unreadCount,lat,currentChannel,avatars,gitChannelStatus,repos) {
-               // console.log(currentChannel,"Bob current Channel Name");
+                console.log(gitChannelStatus,"Bob current Channel Name");
+
                 that.setState({channelsList:list,unreadCount:unreadCount,lat:lat,currentChannel:currentChannel,avatars:avatars,gitChannelStatus:gitChannelStatus,repos:repos});
                 cookie.save('projectName',currentChannel.split('#')[0]);
                 that.resetCurrentChannelUnread(that.state.unreadCount);
@@ -167,6 +168,7 @@ export default class Bob extends React.Component{
       render(){
        //console.log(this.state,"User Name");
         let chatArea;
+        console.log("this is git status",this.state.gitChannelStatus);
          if(this.context.socket!=null&&this.state.currentChannel!=""){
         //console.log(this.state.currentChannel,"current Channel");
 
